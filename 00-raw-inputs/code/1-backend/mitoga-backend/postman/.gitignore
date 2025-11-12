@@ -1,0 +1,31 @@
+# Postman - Archivos a ignorar
+
+# Variables de entorno con datos sensibles (producción)
+# Mantener solo los templates, no los valores reales
+*-Production.postman_environment.json
+
+# Archivos temporales de Postman
+*.postman_environment.backup.json
+*.postman_collection.backup.json
+
+# Reportes generados por Newman
+newman-report.html
+newman-report.json
+newman-report.xml
+newman/
+newman-reports/
+
+# Colecciones de trabajo local (temporal)
+*.postman_collection.local.json
+*.postman_environment.local.json
+
+# Logs de Newman
+newman-run-*.json
+
+# Variables de entorno con passwords reales
+# Solo commitear templates con valores vacíos
+# Mitoga-Production.postman_environment.json
+
+# Nota: 
+# - Los archivos de desarrollo y QA SÍ se deben commitear
+# - Actualizar passwords de desarrollo en cada pull

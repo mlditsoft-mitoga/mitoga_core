@@ -1,0 +1,139 @@
+spring:
+  application:
+    name: mitoga_project  # Debe coincidir EXACTAMENTE con el path en Vault
+  
+  # Import Vault configuration BEFORE application context loads
+  config:
+    import: vault://
+  
+  # Configuración HashiCorp Vault para gestión centralizada de secrets
+  cloud:
+    vault:
+      enabled: ${CONFIG_VAULT_ENABLED:true}
+      uri: http://192.168.18.126:30200
+      authentication: approle
+      app-role:
+        role-id: 2437e31a-1c9e-65a6-04ae-21423aab39d9
+        secret-id: 97b7fdd9-0bc4-c2e2-637b-99f29a731fc5
+        app-role-path: mitoga_approle
+      kv:
+        enabled: true
+        backend: mitoga-secrets
+        application-name: mitoga_project  # Sobreescribe el default-context
+      fail-fast: true
+  
+  datasource:
+    # Valores obtenidos desde HashiCorp Vault en runtime
+    url: ${secret.database.url}
+    username: ${secret.database.username}
+    password: ${secret.database.password}
+    driver-class-name: ${secret.database.driver}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: none  # Deshabilitado - La BD ya existe con su schema definido
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+  
+  flyway:
+    enabled: false  # Deshabilitado temporalmente - Las tablas ya existen en la BD
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    schemas: public
+    validate-on-migrate: false
+  
+  # Configuración de email (valores desde Vault)
+  mail:
+    host: ${secret.mail_host}
+    port: ${secret.mail_port}
+    username: ${secret.mail_username}
+    password: ${secret.mail_password}
+    protocol: ${secret.mail_protocol}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  
+  # Configuración Redis (valores desde Vault)
+  data:
+    redis:
+      host: ${secret.redis_host}
+      port: ${secret.redis_port}
+      password: ${secret.redis_password}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# JWT Configuration (managed by Vault)
+jwt:
+  secret: ${secret.jwt}
+  refresh-secret: ${secret.jwt_refresh_secret}
+  expiration-minutes: ${secret.jwt_expires_in_minutes}
+  refresh-expiration-minutes: ${secret.jwt_expires_in_minutes_refresh}
+
+server:
+  port: ${secret.server.port}
+  error:
+    include-message: always
+    include-stacktrace: never
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+# Actuator Endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.mitoga: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# SpringDoc OpenAPI (Swagger)
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  show-actuator: true

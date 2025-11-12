@@ -1,0 +1,162 @@
+@startuml C4_Container_MI_TOGA_Frontend
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!include DEVICONS/react.puml
+!include DEVICONS/nodejs.puml
+!include DEVICONS/postgresql.puml
+!include FONTAWESOME/mobile.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama de Contenedores - MI-TOGA Frontend Architecture
+
+' Usuarios
+Person(estudiante, "Estudiante", "Busca y contrata tutores")
+Person(tutor, "Tutor", "Ofrece servicios de tutoría")
+Person(admin, "Administrador", "Gestiona plataforma")
+
+' Boundary del Sistema Frontend
+System_Boundary(frontend_system, "MI-TOGA Frontend System") {
+    
+    ' Aplicaciones Frontend
+    Container(web_app, "Web Application", "Next.js 16 + React 19 + TypeScript", "SPA/SSG que proporciona marketplace, perfiles, búsqueda, autenticación", $sprite="react")
+    
+    Container(landing_pages, "Landing Pages", "Next.js SSG", "Páginas estáticas SEO-optimizadas: Home, Ser Tutor, Sobre Nosotros", $sprite="react")
+    
+    ' Estado y Data Management (Client-side)
+    Container(state_manager, "State Management", "Zustand + SWR", "Estado global de usuario, filtros, cache de API responses")
+    
+    Container(auth_manager, "Auth Manager", "Custom Context + JWT", "Gestión de sesiones, tokens, refresh, logout automático")
+    
+    ' Service Layer (API Integration)
+    Container(api_service, "API Service Layer", "Axios + Interceptors", "Capa de abstracción para llamadas a backend con retry logic, error handling")
+    
+    ' CDN y Assets
+    ContainerDb(cdn, "CDN Assets", "AWS CloudFront", "Assets estáticos: JS bundles, CSS, imágenes optimizadas (WebP)", $sprite="react")
+    
+    ContainerDb(static_hosting, "Static Hosting", "AWS S3", "Build output Next.js (HTML, JS, CSS)")
+}
+
+' Backend System (External Boundary)
+System_Boundary(backend_system, "MI-TOGA Backend System") {
+    Container(api_gateway, "API Gateway", "Spring Boot WebFlux", "Punto de entrada único para APIs backend")
+    
+    Container(auth_service, "Auth Service", "Spring Security + JWT", "Autenticación, autorización, gestión de tokens", $sprite="nodejs")
+    
+    Container(tutor_service, "Tutor Service", "Spring Boot", "CRUD tutores, filtrado, búsqueda, calificaciones", $sprite="nodejs")
+    
+    Container(booking_service, "Booking Service", "Spring Boot", "Agendamiento, disponibilidad, reservas (Fase 2)", $sprite="nodejs")
+    
+    Container(notification_service, "Notification Service", "Spring Boot", "Emails, SMS, notificaciones push", $sprite="nodejs")
+    
+    ContainerDb(postgres_db, "Database", "PostgreSQL 15", "Usuarios, tutores, sesiones, pagos", $sprite="postgresql")
+    
+    ContainerDb(redis_cache, "Cache", "Redis 7", "Sesiones, cache de tutores frecuentes, rate limiting")
+}
+
+' Servicios Externos
+System_Ext(stripe_api, "Stripe API", "Pagos")
+System_Ext(agora_sdk, "Agora SDK", "Videollamadas")
+System_Ext(sendgrid_api, "SendGrid API", "Email")
+System_Ext(firebase_auth, "Firebase Auth", "OAuth 2.0")
+System_Ext(google_analytics, "Google Analytics", "Analytics")
+System_Ext(sentry_api, "Sentry", "Error tracking")
+
+' ========== RELACIONES ==========
+
+' Usuarios a Frontend
+Rel(estudiante, web_app, "Navega marketplace, busca tutores", "HTTPS")
+Rel(estudiante, landing_pages, "Visita landing pages", "HTTPS")
+Rel(tutor, web_app, "Gestiona perfil, acepta reservas", "HTTPS")
+Rel(admin, web_app, "Dashboard admin, aprueba tutores", "HTTPS")
+
+' CDN Delivery
+Rel(web_app, cdn, "Sirve desde edge locations", "HTTPS")
+Rel(cdn, static_hosting, "Origin: S3 bucket", "HTTPS")
+
+' Frontend Internal Dependencies
+Rel(web_app, state_manager, "Usa para estado global")
+Rel(web_app, auth_manager, "Gestiona autenticación")
+Rel(web_app, api_service, "Realiza llamadas API")
+
+' API Service a Backend
+Rel(api_service, api_gateway, "HTTP requests con JWT", "JSON/HTTPS")
+
+' API Gateway a Microservicios Backend
+Rel(api_gateway, auth_service, "Valida tokens, autentica", "HTTP")
+Rel(api_gateway, tutor_service, "CRUD tutores, búsqueda", "HTTP")
+Rel(api_gateway, booking_service, "Gestión de reservas", "HTTP")
+Rel(api_gateway, notification_service, "Envía notificaciones", "HTTP")
+
+' Backend Services a Data Stores
+Rel(auth_service, postgres_db, "Lee/Escribe usuarios", "JDBC/TCP")
+Rel(auth_service, redis_cache, "Gestiona sesiones JWT", "TCP/6379")
+Rel(tutor_service, postgres_db, "CRUD tutores", "JDBC/TCP")
+Rel(tutor_service, redis_cache, "Cache búsquedas frecuentes", "TCP/6379")
+Rel(booking_service, postgres_db, "Gestiona reservas", "JDBC/TCP")
+
+' Backend a Externos
+Rel(notification_service, sendgrid_api, "Envía emails", "REST/HTTPS")
+Rel(booking_service, stripe_api, "Procesa pagos", "REST/HTTPS")
+
+' Frontend a Externos (Direct Integration)
+Rel(web_app, firebase_auth, "Social login (Google, Facebook)", "Firebase SDK")
+Rel(web_app, agora_sdk, "Videollamadas WebRTC", "Agora SDK")
+Rel(web_app, google_analytics, "Tracking eventos", "gtag.js")
+Rel(web_app, sentry_api, "Captura errores", "Sentry SDK")
+
+' Layout hints
+Lay_R(web_app, landing_pages)
+Lay_D(cdn, static_hosting)
+Lay_D(api_gateway, auth_service)
+Lay_R(auth_service, tutor_service)
+Lay_R(tutor_service, booking_service)
+
+' Notas
+note right of web_app
+  **Build Configuration:**
+  - Output: Export estático (SSG)
+  - Bundle size: ~180KB gzipped
+  - Code splitting por ruta
+  - Lazy loading de componentes
+  
+  **Rutas Principales:**
+  - / (marketplace)
+  - /login, /registro
+  - /tutores/:id (perfil tutor)
+  - /dashboard/estudiante
+  - /dashboard/tutor
+  - /dashboard/admin
+end note
+
+note right of api_service
+  **Features:**
+  - Axios interceptors para JWT
+  - Retry logic (3 intentos)
+  - Request/Response logging
+  - Error handling centralizado
+  - Mock data en desarrollo
+  
+  **Endpoints Críticos:**
+  - POST /api/auth/login
+  - GET /api/tutores (filtros)
+  - POST /api/reservas
+  - GET /api/users/me
+end note
+
+note right of state_manager
+  **Zustand Stores:**
+  - authStore (user, isAuthenticated)
+  - marketplaceStore (filters, tutors)
+  - bookingStore (cart, reservations)
+  - notificationStore (alerts, toasts)
+  
+  **SWR Configuration:**
+  - Revalidate on focus: true
+  - Dedupe interval: 2000ms
+  - Error retry: 3 attempts
+end note
+
+@enduml

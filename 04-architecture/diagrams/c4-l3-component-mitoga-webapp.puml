@@ -1,0 +1,245 @@
+@startuml C4_Component_MI_TOGA_Web_App
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama de Componentes - MI-TOGA Web Application (Next.js)
+
+' Externos
+Person(usuario, "Usuario", "Estudiante/Tutor/Admin")
+Container_Ext(api_backend, "Backend API", "Spring Boot")
+Container_Ext(firebase, "Firebase Auth", "OAuth 2.0")
+Container_Ext(sentry, "Sentry", "Error tracking")
+
+' Boundary de la Web App
+Container_Boundary(web_app, "Web Application - Next.js 16 + React 19") {
+    
+    ' ===== CAPA DE PRESENTACIÓN (UI Components) =====
+    Component(pages, "Pages (App Router)", "Next.js Pages", "Rutas y layouts del sistema: /, /login, /tutores/:id, /dashboard/*")
+    
+    Component(marketplace_page, "Marketplace Page", "React Component", "Página principal con grid de tutores, filtros, búsqueda")
+    
+    Component(tutor_profile_page, "Tutor Profile Page", "React Component", "Perfil detallado con reviews, calendario, botón reservar")
+    
+    Component(dashboard_pages, "Dashboard Pages", "React Components", "Dashboards por rol: estudiante, tutor, admin")
+    
+    Component(auth_pages, "Auth Pages", "React Components", "Login, registro, recuperar contraseña")
+    
+    ' ===== COMPONENTES COMPARTIDOS (Shared UI) =====
+    Component(tutor_card, "TutorCard Component", "React Component", "Card reutilizable con foto, nombre, rating, precio")
+    
+    Component(search_filters, "SearchFilters Component", "React Component", "Filtros: materia, ciudad, precio, modalidad, ordenamiento")
+    
+    Component(modals, "Modal Components", "React Components", "TutorProfileModal, EventosEspecialesModal, PDFViewerModal")
+    
+    Component(ui_library, "UI Component Library", "Custom + Tailwind", "Button, Input, Select, Modal, Badge, LoadingSpinner")
+    
+    ' ===== CAPA DE LÓGICA DE NEGOCIO (Business Logic) =====
+    Component(custom_hooks, "Custom Hooks", "React Hooks", "useAuth, useTutors, useFilters, useBooking")
+    
+    Component(auth_context, "AuthContext", "React Context", "Proveedor de autenticación global con JWT")
+    
+    Component(marketplace_logic, "Marketplace Logic", "Business Logic", "Filtrado, ordenamiento, paginación de tutores")
+    
+    Component(validation_schemas, "Validation Schemas", "Zod Schemas", "Validación de formularios: login, registro, reserva")
+    
+    ' ===== CAPA DE SERVICIOS (API Integration) =====
+    Component(api_client, "API Client", "Axios Instance", "Cliente HTTP configurado con interceptors, base URL, timeout")
+    
+    Component(auth_service, "Auth Service", "API Service", "login(), register(), logout(), refreshToken(), verifyEmail()")
+    
+    Component(tutor_service, "Tutor Service", "API Service", "getTutors(), getTutorById(), filterTutors(), searchTutors()")
+    
+    Component(booking_service, "Booking Service", "API Service", "createBooking(), getMyBookings(), cancelBooking()")
+    
+    Component(user_service, "User Service", "API Service", "getProfile(), updateProfile(), uploadAvatar()")
+    
+    ' ===== CAPA DE ESTADO (State Management) =====
+    Component(zustand_stores, "Zustand Stores", "State Management", "authStore, marketplaceStore, bookingStore, notificationStore")
+    
+    Component(swr_cache, "SWR Cache", "Data Fetching", "Cache de API responses con revalidación automática")
+    
+    ' ===== CAPA DE UTILIDADES =====
+    Component(utils, "Utilities", "Helper Functions", "formatCurrency(), formatDate(), validateEmail(), debounce()")
+    
+    Component(constants, "Constants", "Configuration", "API_BASE_URL, SUBJECTS, CITIES, PRICE_RANGES")
+    
+    Component(mock_data, "Mock Data", "Development Data", "mockTutors[] para desarrollo sin backend")
+    
+    ' ===== CAPA DE MONITOREO =====
+    Component(error_boundary, "Error Boundary", "React Component", "Captura errores y muestra UI de fallback")
+    
+    Component(analytics_tracker, "Analytics Tracker", "Tracking Service", "trackPageView(), trackEvent(), trackUser()")
+    
+    Component(performance_monitor, "Performance Monitor", "Web Vitals", "Mide LCP, FID, CLS y envía a analytics")
+}
+
+' ========== RELACIONES ==========
+
+' Usuario a Páginas
+Rel(usuario, pages, "Navega rutas", "HTTPS")
+Rel(pages, marketplace_page, "Renderiza")
+Rel(pages, tutor_profile_page, "Renderiza")
+Rel(pages, dashboard_pages, "Renderiza")
+Rel(pages, auth_pages, "Renderiza")
+
+' Páginas a Componentes Compartidos
+Rel(marketplace_page, tutor_card, "Usa")
+Rel(marketplace_page, search_filters, "Usa")
+Rel(marketplace_page, modals, "Abre modales")
+Rel(tutor_profile_page, modals, "Abre modales")
+
+' Componentes a UI Library
+Rel(tutor_card, ui_library, "Usa Button, Badge")
+Rel(search_filters, ui_library, "Usa Select, Input")
+Rel(modals, ui_library, "Usa Modal base")
+
+' Páginas a Custom Hooks
+Rel(marketplace_page, custom_hooks, "useFilters(), useTutors()")
+Rel(auth_pages, custom_hooks, "useAuth()")
+Rel(dashboard_pages, custom_hooks, "useAuth(), useBooking()")
+
+' Custom Hooks a Contextos y Estado
+Rel(custom_hooks, auth_context, "Consume auth state")
+Rel(custom_hooks, zustand_stores, "Lee/Escribe estado")
+Rel(custom_hooks, swr_cache, "Usa SWR para fetching")
+
+' Lógica de Negocio
+Rel(marketplace_page, marketplace_logic, "Filtra y ordena tutores")
+Rel(marketplace_logic, utils, "Usa helpers")
+Rel(auth_pages, validation_schemas, "Valida formularios")
+
+' SWR a Servicios API
+Rel(swr_cache, tutor_service, "Fetcher function")
+Rel(swr_cache, booking_service, "Fetcher function")
+Rel(swr_cache, user_service, "Fetcher function")
+
+' Auth Context a Auth Service
+Rel(auth_context, auth_service, "login(), logout()")
+
+' Servicios a API Client
+Rel(auth_service, api_client, "Usa instancia Axios")
+Rel(tutor_service, api_client, "Usa instancia Axios")
+Rel(booking_service, api_client, "Usa instancia Axios")
+Rel(user_service, api_client, "Usa instancia Axios")
+
+' API Client a Backend
+Rel(api_client, api_backend, "HTTP requests con JWT", "JSON/HTTPS")
+
+' Auth Service a Firebase
+Rel(auth_service, firebase, "signInWithGoogle(), signInWithFacebook()")
+
+' Monitoreo
+Rel(error_boundary, sentry, "Captura errores")
+Rel(pages, error_boundary, "Envuelto por")
+Rel(analytics_tracker, "Google Analytics", "Envía eventos")
+Rel(performance_monitor, analytics_tracker, "Reporta métricas")
+
+' Mock Data (Desarrollo)
+Rel(tutor_service, mock_data, "Usa en desarrollo", "dotted")
+
+' Layout hints
+Lay_D(pages, marketplace_page)
+Lay_R(marketplace_page, tutor_profile_page)
+Lay_D(custom_hooks, auth_context)
+Lay_R(auth_service, tutor_service)
+Lay_R(tutor_service, booking_service)
+
+' Notas
+note right of pages
+  **Estructura App Router (Next.js 16):**
+  - app/(public)/page.tsx → Marketplace
+  - app/(public)/login/page.tsx → Login
+  - app/(public)/registro/page.tsx → Registro
+  - app/(public)/ser-tutor/page.tsx → Landing Tutor
+  - app/tutores/[id]/page.tsx → Perfil Tutor
+  - app/dashboard/estudiante/page.tsx
+  - app/dashboard/tutor/page.tsx
+  - app/dashboard/admin/page.tsx
+  
+  **Problema Actual:**
+  - page.tsx tiene 856 líneas (debe ser < 300)
+  - Mezcla UI + lógica + estado
+  - Requiere refactoring urgente
+end note
+
+note right of api_client
+  **Configuración Axios:**
+  ```typescript
+  const apiClient = axios.create({
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  // Request interceptor: Agregar JWT
+  apiClient.interceptors.request.use(
+    (config) => {
+      const token = getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    }
+  );
+  
+  // Response interceptor: Refresh token
+  apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      if (error.response?.status === 401) {
+        // Refresh token logic
+      }
+      return Promise.reject(error);
+    }
+  );
+  ```
+end note
+
+note right of zustand_stores
+  **Auth Store:**
+  - user: User | null
+  - isAuthenticated: boolean
+  - login(credentials)
+  - logout()
+  - updateUser(data)
+  
+  **Marketplace Store:**
+  - filters: MarketplaceFilters
+  - setSubject(subject)
+  - setCity(city)
+  - setPriceRange(min, max)
+  - resetFilters()
+  
+  **Booking Store:**
+  - cart: Booking[]
+  - addToCart(booking)
+  - removeFromCart(id)
+  - clearCart()
+end note
+
+note right of validation_schemas
+  **Ejemplo Zod Schema:**
+  ```typescript
+  const loginSchema = z.object({
+    email: z.string()
+      .email('Email inválido')
+      .min(1, 'Email requerido'),
+    password: z.string()
+      .min(8, 'Mínimo 8 caracteres')
+      .regex(/[A-Z]/, 'Debe tener mayúscula')
+      .regex(/[0-9]/, 'Debe tener número')
+  });
+  
+  type LoginFormData = z.infer<typeof loginSchema>;
+  ```
+  
+  **Ventajas:**
+  - Type inference automático
+  - Validación en runtime
+  - Mensajes de error claros
+end note
+
+@enduml

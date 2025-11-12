@@ -1,0 +1,76 @@
+@startuml C4_Context_MI_TOGA
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama de Contexto del Sistema - MI-TOGA Plataforma de Tutorías
+
+' Actores Humanos
+Person(estudiante, "Estudiante", "Usuario que busca tutorías académicas en Colombia")
+Person(tutor, "Tutor", "Profesional que ofrece servicios de tutoría")
+Person(admin, "Administrador", "Personal de ZENAPSES que gestiona la plataforma")
+
+' Sistema Principal
+System(mitoga, "MI-TOGA Platform", "Plataforma web que conecta estudiantes con tutores, gestiona perfiles, agendamiento, pagos y videollamadas")
+
+' Sistemas Externos
+System_Ext(backend_api, "Backend API", "Spring Boot 3.5.5 + WebFlux - API RESTful con datos de usuarios, tutores, sesiones")
+System_Ext(stripe, "Stripe Payment Gateway", "Procesamiento de pagos con tarjeta de crédito/débito (Fase 4)")
+System_Ext(payu, "PayU Payment Gateway", "Procesamiento de pagos local Colombia (Fase 4)")
+System_Ext(agora, "Agora Video SDK", "Videollamadas en tiempo real para sesiones virtuales (Fase 3)")
+System_Ext(twilio, "Twilio SMS Service", "Verificación de teléfono y notificaciones por SMS (Fase 2)")
+System_Ext(sendgrid, "SendGrid Email Service", "Envío de emails transaccionales (registro, confirmaciones, recordatorios)")
+System_Ext(firebase, "Firebase Auth", "Autenticación OAuth 2.0 con Google y Facebook (Fase 3)")
+System_Ext(google_analytics, "Google Analytics", "Tracking de eventos y métricas de negocio")
+System_Ext(sentry, "Sentry Error Tracking", "Monitoreo de errores JavaScript en producción")
+
+' Relaciones Estudiantes
+Rel(estudiante, mitoga, "Busca tutores, agenda sesiones, realiza pagos", "HTTPS")
+Rel(estudiante, google_analytics, "Genera eventos de navegación", "JavaScript SDK")
+
+' Relaciones Tutores
+Rel(tutor, mitoga, "Gestiona perfil, disponibilidad, acepta reservas", "HTTPS")
+
+' Relaciones Administradores
+Rel(admin, mitoga, "Aprueba tutores, gestiona reportes, analiza métricas", "HTTPS")
+
+' Relaciones Sistema Principal a Externos
+Rel(mitoga, backend_api, "Obtiene/actualiza datos de usuarios, tutores, sesiones", "REST API / JSON / HTTPS")
+Rel(mitoga, stripe, "Procesa pagos internacionales", "Stripe.js SDK / HTTPS")
+Rel(mitoga, payu, "Procesa pagos locales Colombia", "PayU SDK / HTTPS")
+Rel(mitoga, agora, "Inicia videollamadas", "Agora Web SDK / WebRTC")
+Rel(mitoga, firebase, "Autentica con social login", "Firebase Auth SDK")
+Rel(mitoga, sentry, "Envía errores y stack traces", "Sentry SDK")
+
+' Backend a Servicios Externos
+Rel(backend_api, sendgrid, "Envía emails transaccionales", "REST API / HTTPS")
+Rel(backend_api, twilio, "Envía SMS de verificación", "REST API / HTTPS")
+
+' Layout hints para mejor organización
+Lay_R(stripe, payu)
+Lay_R(payu, agora)
+Lay_D(mitoga, backend_api)
+
+' Notas
+note right of mitoga
+  **Tecnologías Frontend:**
+  - Next.js 16.0 (React 19)
+  - TypeScript 5.9
+  - Tailwind CSS 4.1
+  - Deployment: AWS S3 + CloudFront
+  
+  **Usuarios Proyectados:**
+  - MVP: 500 usuarios (50 concurrentes)
+  - Año 1: 10,000 usuarios (1,000 concurrentes)
+  - Año 3: 50,000 usuarios (5,000 concurrentes)
+end note
+
+note right of backend_api
+  **Tecnologías Backend:**
+  - Spring Boot 3.5.5 (Java 21 LTS)
+  - Spring WebFlux (Reactive)
+  - PostgreSQL + Spring Data JPA
+  - JWT Authentication
+end note
+
+@enduml
