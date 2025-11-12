@@ -1,0 +1,538 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5g6h7",
+		"name": "Mitoga API v1.2 - POST Only",
+		"description": "Colección completa del API REST de Mitoga - Sistema de Gestión Empresarial\n\n## Versión\nv1.2.0 - 12 de noviembre de 2025 - **POLÍTICA POST-ONLY + CRUD COMPLETO**\n\n## IMPORTANTE: Nueva Política HTTP Methods\n✅ **GET:** SOLO para health checks (/actuator/health, /actuator/info)\n✅ **POST:** TODOS los demás endpoints (consultas, búsquedas, operaciones CRUD)\n\n## Arquitectura\n- Hexagonal Architecture + DDD\n- Spring Boot 3.4.0 + Java 21\n- PostgreSQL 17.6\n\n## Seguridad\nUtiliza Spring Security con autenticación básica (desarrollo)\n\n## Módulos Implementados\n1. **Catálogos Recursivos** - CRUD completo + Consultas jerárquicas con POST\n   - ✅ Crear catálogo (raíz o hijo)\n   - ✅ Actualizar catálogo (parcial)\n   - ✅ Obtener catálogo por ID\n   - ✅ Eliminar catálogo (soft delete con cascada)\n   - ✅ Buscar árbol completo\n   - ✅ Buscar ancestros (breadcrumb)\n   - ✅ Buscar descendientes (subárbol)\n   - ✅ Buscar por nombre\n\n## Convenciones\n- Todas las respuestas usan estructura `ApiResponse<T>`\n- Códigos de estado HTTP estándar (200, 201, 400, 404, 409, 500)\n- Mensajes de error en español\n- Fechas en formato ISO-8601\n- Validaciones Jakarta Bean Validation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "0. Health Checks (GET only)",
+			"item": [
+				{
+					"name": "0.1. Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "**ÚNICO endpoint con GET:** Verifica el estado de salud de la aplicación."
+					},
+					"response": []
+				},
+				{
+					"name": "0.2. Application Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/info",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"actuator",
+								"info"
+							]
+						},
+						"description": "**ÚNICO endpoint con GET:** Obtiene información de la aplicación."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. Catálogos Recursivos (POST only)",
+			"item": [
+				{
+					"name": "1.1. Buscar Árbol Completo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Data is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 2000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipo\": \"categorias_tutorias\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/buscar-arbol",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"buscar-arbol"
+							]
+						},
+						"description": "**POST** - Obtiene la estructura completa del árbol de catálogos de un tipo específico.\n\n### Body JSON (required)\n```json\n{\n  \"tipo\": \"string\",  // REQUIRED\n  \"soloActivos\": boolean,  // default: true\n  \"soloSeleccionables\": boolean  // default: false\n}\n```\n\n### Respuesta\nRetorna un árbol jerárquico completo."
+					},
+					"response": []
+				},
+				{
+					"name": "1.2. Buscar Ancestros",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Ancestros are ordered from root to parent\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var ancestros = jsonData.data.ancestros;",
+									"    for (let i = 0; i < ancestros.length - 1; i++) {",
+									"        pm.expect(ancestros[i].nivel).to.be.below(ancestros[i + 1].nivel);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"incluirPropio\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/buscar-ancestros",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"buscar-ancestros"
+							]
+						},
+						"description": "**POST** - Obtiene la cadena de ancestros (breadcrumb) de un catálogo específico.\n\n### Body JSON (required)\n```json\n{\n  \"catalogoId\": \"UUID\",  // REQUIRED\n  \"incluirPropio\": boolean  // default: true\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "1.3. Buscar Descendientes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"incluirPropio\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/buscar-descendientes",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"buscar-descendientes"
+							]
+						},
+						"description": "**POST** - Obtiene todos los descendientes (subárbol) de un catálogo.\n\n### Body JSON (required)\n```json\n{\n  \"catalogoId\": \"UUID\",  // REQUIRED\n  \"incluirPropio\": boolean  // default: false\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "1.4. Buscar por Nombre",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipo\": \"categorias_tutorias\",\n  \"nombre\": \"álgebra\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/buscar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"buscar"
+							]
+						},
+						"description": "**POST** - Busca catálogos por nombre (búsqueda parcial case-insensitive).\n\n### Body JSON (required)\n```json\n{\n  \"tipo\": \"string\",  // REQUIRED\n  \"nombre\": \"string\"  // REQUIRED\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "1.5. Crear Catálogo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Catalog ID is present\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.collectionVariables.set('catalogoId', jsonData.data.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipo\": \"categorias_tutorias\",\n  \"codigo\": \"NUEVA_CATEGORIA\",\n  \"nombre\": \"Nueva Categoría\",\n  \"descripcion\": \"Descripción de la nueva categoría\",\n  \"nombreEn\": \"New Category\",\n  \"descripcionEn\": \"Description of the new category\",\n  \"catalogoPadreId\": null,\n  \"orden\": 1,\n  \"icono\": \"fa-book\",\n  \"color\": \"#3498db\",\n  \"esSeleccionable\": true,\n  \"metadata\": {\n    \"customField\": \"customValue\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/crear",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"crear"
+							]
+						},
+						"description": "**POST** - Crea un nuevo catálogo (raíz o hijo).\n\n### Body JSON (required)\n```json\n{\n  \"tipo\": \"string\",  // REQUIRED (max 100)\n  \"codigo\": \"string\",  // REQUIRED (uppercase, max 100)\n  \"nombre\": \"string\",  // REQUIRED (max 255)\n  \"descripcion\": \"string\",  // OPTIONAL (max 1000)\n  \"nombreEn\": \"string\",  // OPTIONAL (max 255)\n  \"descripcionEn\": \"string\",  // OPTIONAL (max 1000)\n  \"catalogoPadreId\": \"UUID\",  // OPTIONAL (null = root)\n  \"orden\": integer,  // OPTIONAL (min 1, max 9999, default: 1)\n  \"icono\": \"string\",  // OPTIONAL (max 100)\n  \"color\": \"string\",  // OPTIONAL (hex color, max 20)\n  \"esSeleccionable\": boolean,  // OPTIONAL (default: true)\n  \"metadata\": {}  // OPTIONAL (JSONB object)\n}\n```\n\n### Validaciones\n- Código debe ser único para el tipo\n- Si se especifica catalogoPadreId, el padre debe existir\n- Código solo acepta mayúsculas, números y guiones bajos\n- Color debe ser formato hexadecimal válido (#RRGGBB)"
+					},
+					"response": []
+				},
+				{
+					"name": "1.6. Actualizar Catálogo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"nombre\": \"Nombre Actualizado\",\n  \"descripcion\": \"Descripción actualizada\",\n  \"color\": \"#e74c3c\",\n  \"icono\": \"fa-star\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/actualizar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"actualizar"
+							]
+						},
+						"description": "**POST** - Actualiza un catálogo existente (actualización parcial).\n\n### Body JSON (required)\n```json\n{\n  \"catalogoId\": \"UUID\",  // REQUIRED\n  \"codigo\": \"string\",  // OPTIONAL (uppercase, max 100)\n  \"nombre\": \"string\",  // OPTIONAL (max 255)\n  \"descripcion\": \"string\",  // OPTIONAL (max 1000)\n  \"nombreEn\": \"string\",  // OPTIONAL (max 255)\n  \"descripcionEn\": \"string\",  // OPTIONAL (max 1000)\n  \"catalogoPadreId\": \"UUID\",  // OPTIONAL (null = convert to root)\n  \"orden\": integer,  // OPTIONAL (min 1, max 9999)\n  \"icono\": \"string\",  // OPTIONAL (max 100)\n  \"color\": \"string\",  // OPTIONAL (hex color, max 20)\n  \"esSeleccionable\": boolean,  // OPTIONAL\n  \"metadata\": {}  // OPTIONAL (JSONB object)\n}\n```\n\n### Comportamiento\n- Solo los campos informados serán actualizados\n- Para eliminar valores opcionales, enviar `null`\n- Para cambiar a raíz, enviar `catalogoPadreId: null`"
+					},
+					"response": []
+				},
+				{
+					"name": "1.7. Obtener Catálogo por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Catalog data is complete\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('id');",
+									"    pm.expect(jsonData.data).to.have.property('tipo');",
+									"    pm.expect(jsonData.data).to.have.property('codigo');",
+									"    pm.expect(jsonData.data).to.have.property('nombre');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"catalogoId\": \"{{catalogoId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/obtener-por-id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"obtener-por-id"
+							]
+						},
+						"description": "**POST** - Obtiene un catálogo por su ID.\n\n### Body JSON (required)\n```json\n{\n  \"catalogoId\": \"UUID\"  // REQUIRED\n}\n```\n\n### Respuesta\nRetorna todos los datos del catálogo incluyendo:\n- Información básica (id, tipo, codigo, nombre)\n- Información jerárquica (padre, nivel, rutaCompleta)\n- Metadatos y configuración"
+					},
+					"response": []
+				},
+				{
+					"name": "1.8. Eliminar Catálogo (Soft Delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.eql(true);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"eliminarDescendientes\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/catalogos/eliminar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"catalogos",
+								"eliminar"
+							]
+						},
+						"description": "**POST** - Desactiva un catálogo (soft delete).\n\n### Body JSON (required)\n```json\n{\n  \"catalogoId\": \"UUID\",  // REQUIRED\n  \"eliminarDescendientes\": boolean  // OPTIONAL (default: false)\n}\n```\n\n### Comportamiento\n- **eliminarDescendientes = false**: Solo desactiva el nodo si NO tiene hijos activos\n- **eliminarDescendientes = true**: Desactiva el nodo y TODOS sus descendientes en cascada\n\n### Errores\n- HTTP 409: Si tiene hijos activos y no se especificó cascada\n- HTTP 404: Si el catálogo no existe"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{username}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.collectionVariables.set(\"timestamp\", new Date().toISOString());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"console.log(\"Request: \" + pm.request.method + \" \" + pm.request.url);",
+					"console.log(\"Response Status: \" + pm.response.code);",
+					"console.log(\"Response Time: \" + pm.response.responseTime + \"ms\");"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8082/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "user",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "e0acd35b-d4b1-4660-986a-2dddb451a8ac",
+			"type": "string"
+		},
+		{
+			"key": "catalogoId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "timestamp",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
