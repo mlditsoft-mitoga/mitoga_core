@@ -1,6 +1,6 @@
 # Documentación de Arquitectura y Soluciones Técnicas
 
-Este directorio contiene las plantillas y documentos de soporte para el diseño de arquitectura y soluciones técnicas de proyectos de desarrollo de software, siguiendo el Método CEIBA.
+Este directorio contiene las plantillas y documentos de soporte para el diseño de arquitectura y soluciones técnicas de proyectos de desarrollo de software, siguiendo el Método ZNS.
 
 ## 📁 Contenido del Directorio
 
@@ -155,5 +155,5 @@ Para mejorar estas plantillas:
 
 ---
 
-*Documentación creada siguiendo el Método CEIBA*
+*Documentación creada siguiendo el Método ZNS*
 *Última actualización: 2025-11-07*

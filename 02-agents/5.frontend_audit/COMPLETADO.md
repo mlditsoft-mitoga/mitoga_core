@@ -8,7 +8,7 @@
 
 #### Documentos Maestros
 1. ✅ **README.md** (Guía completa del sistema)
-   - Metodología CEIBA
+   - Metodología ZNS
    - Sistema de calificación 0-100
    - Stack soportado
    - Checklist pre-auditoría
@@ -180,7 +180,7 @@
 - [ ] Crear **scripts automatizados** para herramientas
 - [ ] Integrar **IA para análisis** automático
 - [ ] Desarrollar **dashboard visual** de scores
-- [ ] Crear **certificación CEIBA** oficial
+- [ ] Crear **certificación ZNS** oficial
 
 ---
 
@@ -285,7 +285,7 @@ Este framework ha sido diseñado según:
 
 ## 🎉 ¡Sistema Listo para Producción!
 
-El **Sistema de Auditoría Frontend CEIBA v1.0** está completo y listo para:
+El **Sistema de Auditoría Frontend ZNS v1.0** está completo y listo para:
 - ✅ Auditorías inmediatas
 - ✅ Training de equipos
 - ✅ Integración con metodología existente
@@ -300,4 +300,4 @@ El **Sistema de Auditoría Frontend CEIBA v1.0** está completo y listo para:
 
 ---
 
-*Sistema creado para el Método CEIBA - Auditorías Técnicas Integrales*
+*Sistema creado para el Método ZNS - Auditorías Técnicas Integrales*

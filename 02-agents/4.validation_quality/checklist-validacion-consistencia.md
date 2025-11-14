@@ -1,4 +1,4 @@
-# 🔍 Checklist de Validación de Consistencia - Método CEIBA v1.2
+# 🔍 Checklist de Validación de Consistencia - Método ZNS v2.0
 
 **Propósito**: Verificar que todos los artefactos generados son coherentes entre sí y no contienen contradicciones.
 
@@ -574,4 +574,4 @@ else:
 
 **Versión**: 1.0.0  
 **Fecha**: 7 de noviembre de 2025  
-**Método CEIBA**: v1.2
+**Método ZNS**: v1.2

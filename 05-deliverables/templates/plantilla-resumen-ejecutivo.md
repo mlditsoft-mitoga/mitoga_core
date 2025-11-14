@@ -307,7 +307,7 @@ Testing:           [🔴] [🟡] [🟢]
 **Fecha de Emisión:** {Fecha}  
 **Válido hasta:** {Fecha + 6 meses}  
 **Versión:** 1.0  
-**Método:** CEIBA v1.2 - Auditoría Técnica Integral
+**Método:** ZNS v2.0 - Auditoría Técnica Integral
 
 ---
 

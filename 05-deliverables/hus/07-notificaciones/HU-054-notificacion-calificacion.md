@@ -115,4 +115,4 @@ Email y push notification enviados 5 minutos después de que una sesión se marc
 ---
 
 **Última actualización:** 2025-11-08  
-**Autor:** Product Owner Senior - CEIBA v1.2
+**Autor:** Product Owner Senior - ZNS v2.0

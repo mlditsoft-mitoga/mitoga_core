@@ -1,6 +1,6 @@
 # 🛒 Caso de Estudio Completo: ShopFast E-commerce MVP
 
-**Propósito**: Demostración end-to-end del Método CEIBA v1.2 aplicado a un proyecto real de e-commerce.
+**Propósito**: Demostración end-to-end del Método ZNS v2.0 aplicado a un proyecto real de e-commerce.
 
 ---
 
@@ -179,7 +179,7 @@ shopfast-ecommerce-mvp/
 R: Es un proyecto greenfield (nuevo desde cero). La Fase 1 es para proyectos brownfield (modernización).
 
 **P: ¿Por qué solo 9.8 horas si un proyecto real toma meses?**  
-R: El Método CEIBA cubre **diseño y documentación de arquitectura**, no implementación de código.
+R: El Método ZNS cubre **diseño y documentación de arquitectura**, no implementación de código.
 
 **P: ¿Puedo usar este caso para mi proyecto?**  
 R: ✅ Sí, está bajo licencia MIT. Puedes adaptar plantillas y estructura.
@@ -191,7 +191,7 @@ R: En `00-inputs/`. Son versiones simplificadas de documentos reales de cliente.
 
 ## 🔗 Referencias
 
-- [Método CEIBA v1.2](../../README.md)
+- [Método ZNS v2.0](../../README.md)
 - [Plantilla ADR](../../02-agents/2.definition_of_architecture/plantilla-adr.md)
 - [Política de Diagramación](../../02-agents/2.definition_of_architecture/politica-diagramacion.md)
 - [C4 Model](https://c4model.com)
@@ -200,5 +200,5 @@ R: En `00-inputs/`. Son versiones simplificadas de documentos reales de cliente.
 
 **Versión del Caso**: 1.0.0  
 **Fecha de Creación**: 7 de noviembre de 2025  
-**Autor**: Equipo Método CEIBA  
+**Autor**: Equipo Método ZNS  
 **Licencia**: MIT

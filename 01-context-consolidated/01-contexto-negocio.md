@@ -631,7 +631,7 @@ Convertirse en la plataforma líder de tutorías en Colombia, reconocida por su 
 
 ---
 
-**Documento preparado por:** CEIBA v1.2 - Consolidación de Contexto Profundo  
+**Documento preparado por:** ZNS v2.0 - Consolidación de Contexto Profundo  
 **Fecha:** 08 de noviembre de 2025  
 **Versión:** 1.0  
 **Próxima revisión:** Al completar Fase 2 (Backend)

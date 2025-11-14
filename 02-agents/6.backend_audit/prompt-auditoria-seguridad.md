@@ -1,7 +1,7 @@
 # Prompt - Auditoría de Seguridad
 
 ---
-**Método:** CEIBA  
+**Método:** ZNS  
 **Versión:** 1.2  
 **Prompt Version:** 1.0.0  
 **Área:** Seguridad y Compliance  

@@ -154,7 +154,7 @@ dotnet format --verify-no-changes  # Code formatting check
 
 ---
 
-## 🤖 Integración con Agentes CEIBA
+## 🤖 Integración con Agentes ZNS
 
 ### Agente 1: Análisis de Obsolescencia
 
@@ -256,5 +256,5 @@ Si el código está en un repositorio remoto accesible:
 
 ---
 
-**Versión:** Método CEIBA v1.2  
+**Versión:** Método ZNS v2.0  
 **Uso:** Proyectos de modernización, migración y análisis de obsolescencia

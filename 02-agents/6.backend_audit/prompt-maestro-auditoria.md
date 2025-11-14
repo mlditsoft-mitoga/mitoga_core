@@ -1,7 +1,7 @@
 # Prompt Maestro - Auditoría Técnica Integral Senior
 
 ---
-**Método:** CEIBA  
+**Método:** ZNS  
 **Versión:** 1.2  
 **Prompt Version:** 1.0.0  
 **Última Actualización:** 8 de noviembre de 2025  
@@ -570,7 +570,7 @@ Antes de comenzar la auditoría, verificar:
 ---
 
 **Autor:** GitHub Copilot - Senior Technical Auditor  
-**Versión del Método:** CEIBA v1.2  
+**Versión del Método:** ZNS v2.0  
 **Documento:** Prompt Maestro de Auditoría Técnica Integral  
 **Fecha de Creación:** 8 de noviembre de 2025  
 **Estado:** ✅ Listo para ejecución

@@ -1,7 +1,7 @@
 # Prompt - Auditoría de Arquitectura
 
 ---
-**Método:** CEIBA v1.2  
+**Método:** ZNS v2.0  
 **Área:** Arquitectura de Software  
 **Prioridad:** 🟠 ALTA  
 **Duración:** 3 horas  

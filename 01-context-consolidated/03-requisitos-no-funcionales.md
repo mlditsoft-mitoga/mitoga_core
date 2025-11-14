@@ -22,7 +22,7 @@
 
 - **Fuente:** PROYECTO_CONTEXTO.md - KPIs Técnicos
 
-- **Estado:** ⚠️ A validar (no medido)**Método:** CEIBA - Consolidación, Estructuración, Inteligencia, Best Practices, Arquitectura## 1. Performance y Escalabilidad
+- **Estado:** ⚠️ A validar (no medido)**Método:** ZNS - Consolidación, Estructuración, Inteligencia, Best Practices, Arquitectura## 1. Performance y Escalabilidad
 
 - **Implementación:** Next.js 16.0 con App Router, optimización de imágenes
 
@@ -432,7 +432,7 @@
 
 **Descripción:** Estrategia para recuperación ante desastres.
 
-**Documento:** CEIBA v1.2 - RNFs extraídos de KPIs técnicos + buenas prácticas estándar  
+**Documento:** ZNS v2.0 - RNFs extraídos de KPIs técnicos + buenas prácticas estándar  
 
 **Gap Principal:** Backend no implementado (14 RNFs pendientes dependen de backend)  **Requisitos:**
 
@@ -1207,7 +1207,7 @@
 
 **Documento generado por:** GitHub Copilot - Solutions Architect  
 **Fecha:** 8 de noviembre de 2025  
-**Método:** CEIBA v1.2 - Fase 0 Consolidación de Contexto  
+**Método:** ZNS v2.0 - Fase 0 Consolidación de Contexto  
 **Fuentes:** PROYECTO_CONTEXTO.md, build.gradle, estándares de industria  
 **Nivel de confianza:** 🟡 MEDIO (70%) - Muchos RNF son supuestos que requieren validación  
 **Próximos pasos:** Validación con Tech Lead, definición de SLAs, aprobación de presupuesto

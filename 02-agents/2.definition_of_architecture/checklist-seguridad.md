@@ -1,4 +1,4 @@
-# Checklist de Seguridad por Capa - Método CEIBA
+# Checklist de Seguridad por Capa - Método ZNS
 
 ## Introducción
 
@@ -522,4 +522,4 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 
 **Última actualización:** 2025-11-07
 **Versión:** 1.0
-**Método CEIBA - Security Checklist**
+**Método ZNS - Security Checklist**

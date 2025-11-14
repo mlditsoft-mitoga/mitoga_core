@@ -1,11 +1,11 @@
 ---
-metodo: ceiba
+metodo: ZNS
 version: "1.2"
 prompt_version: "1.0.1"
 last_updated: "2025-11-07"
 changelog:
   - "1.0.1: Actualizadas rutas de entrada a estructura en inglés (04-architecture, 05-deliverables)"
-  - "1.0.0: Versión inicial del método CEIBA v1.2"
+  - "1.0.0: Versión inicial del método ZNS v2.0"
 agente: exportacion-documentos
 fase: 3
 rol: Technical Documentation Specialist
@@ -167,7 +167,7 @@ Estimación: [S/M/L/XL]
 
 ## 🎨 Conversión de Diagramas a Imágenes
 
-El **Método CEIBA v1.2** utiliza **PlantUML + C4 Model** como estándar principal. Los diagramas deben convertirse a imágenes antes de insertar en Word.
+El **Método ZNS v2.0** utiliza **PlantUML + C4 Model** como estándar principal. Los diagramas deben convertirse a imágenes antes de insertar en Word.
 
 ### **📐 ESTÁNDAR PRINCIPAL: PlantUML (RECOMENDADO)**
 

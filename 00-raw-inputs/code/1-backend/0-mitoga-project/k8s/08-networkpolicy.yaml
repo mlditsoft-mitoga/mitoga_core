@@ -1,0 +1,136 @@
+# ============================================================================
+# NETWORK POLICY: mitoga-backend-network-policy
+# Purpose: Controlar tráfico de red hacia/desde pods del backend
+# Default Deny All + Allow específicos
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mitoga-backend-allow-ingress
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: mitoga-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Permitir desde Traefik Ingress Controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    ports:
+    - protocol: TCP
+      port: 8080
+      
+  # Permitir desde Prometheus (monitoring)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cicd
+      podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080  # Actuator metrics
+      
+  # Permitir entre pods del mismo backend (si es necesario)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: mitoga-backend
+    ports:
+    - protocol: TCP
+      port: 8080
+      
+  egress:
+  # Permitir DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+      
+  # Permitir a PostgreSQL
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: databases
+      podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+      
+  # Permitir a Redis
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: databases
+      podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+      
+  # Permitir a Vault
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: cicd
+      podSelector:
+        matchLabels:
+          app: vault
+    ports:
+    - protocol: TCP
+      port: 8200
+      
+  # Permitir HTTPS saliente (para APIs externas, mail, etc)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 587   # SMTP TLS
+    - protocol: TCP
+      port: 465   # SMTP SSL
+      
+---
+# ============================================================================
+# NETWORK POLICY: mitoga-backend-deny-all-default
+# Purpose: Denegar todo el tráfico por defecto (fallback)
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mitoga-backend-deny-all
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: mitoga-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  # Sin reglas = deny all (se complementa con la policy anterior)

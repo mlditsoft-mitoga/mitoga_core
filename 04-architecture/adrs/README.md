@@ -40,7 +40,7 @@ ADR-005-message-queue-rabbitmq.md
 
 ## 📋 Plantilla
 
-Usa la plantilla oficial del Método CEIBA:
+Usa la plantilla oficial del Método ZNS:
 ```
 02-agentes/2.definicion_arquitectura/plantilla-adr.md
 ```
@@ -183,5 +183,5 @@ Vamos a usar PostgreSQL porque es bueno.
 
 ---
 
-**Método:** CEIBA v1.2  
+**Método:** ZNS v2.0  
 **Rol:** Solutions Architect Senior & Cloud Architect

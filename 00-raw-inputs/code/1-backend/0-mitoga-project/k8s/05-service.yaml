@@ -1,0 +1,52 @@
+# ============================================================================
+# SERVICE: mitoga-backend-service
+# Purpose: ClusterIP service para el backend (interno al cluster)
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mitoga-backend-service
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: api
+spec:
+  type: ClusterIP
+  selector:
+    app: mitoga-backend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080        # Puerto del service
+    targetPort: 8080  # Puerto del container
+  - name: actuator
+    protocol: TCP
+    port: 8081
+    targetPort: 8080
+  sessionAffinity: None
+  
+---
+# ============================================================================
+# SERVICE: mitoga-backend-headless
+# Purpose: Headless service para StatefulSets o descubrimiento directo
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mitoga-backend-headless
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: api
+    type: headless
+spec:
+  type: ClusterIP
+  clusterIP: None  # Headless service
+  selector:
+    app: mitoga-backend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  publishNotReadyAddresses: false

@@ -8,8 +8,8 @@ except ImportError:
     os.system("pip install pdfplumber")
     import pdfplumber
 
-pdf_dir = r"d:\Documents\1.ceiba_workspace\1.projects\21.txplus\00-raw-inputs\pdfs"
-output_dir = r"d:\Documents\1.ceiba_workspace\1.projects\21.txplus\00-raw-inputs\pdfs"
+pdf_dir = r"d:\Documents\1.zns_workspace\1.projects\21.txplus\00-raw-inputs\pdfs"
+output_dir = r"d:\Documents\1.zns_workspace\1.projects\21.txplus\00-raw-inputs\pdfs"
 
 pdf_files = [f for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
 

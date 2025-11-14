@@ -2,7 +2,7 @@
 
 ## 📁 Propósito
 
-Este directorio contiene los **reportes de análisis de obsolescencia tecnológica** generados por el Agente 1 del Método CEIBA.
+Este directorio contiene los **reportes de análisis de obsolescencia tecnológica** generados por el Agente 1 del Método ZNS.
 
 ---
 
@@ -62,4 +62,4 @@ Una vez completado el análisis de obsolescencia:
 
 **Agente relacionado:** `02-agentes/1.analisis_obsolescencia/prompt-analisis-obsolescencia.md`  
 **Rol:** Technical Debt Analyst Senior & Platform Architect  
-**Método:** CEIBA v1.2
+**Método:** ZNS v2.0

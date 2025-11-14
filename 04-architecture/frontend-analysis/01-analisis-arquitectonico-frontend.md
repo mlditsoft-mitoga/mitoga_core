@@ -5,7 +5,7 @@
 **Rol Ejecutor:** Solutions Architect Senior y Cloud Architect  
 **Fecha de Análisis:** 8 de noviembre de 2025  
 **Versión del Documento:** 1.0  
-**Método:** CEIBA - Consolidación, Estructuración, Inteligencia, Best Practices, Arquitectura
+**Método:** ZNS - Consolidación, Estructuración, Inteligencia, Best Practices, Arquitectura
 
 ---
 

@@ -1,11 +1,11 @@
 ---
-metodo: ceiba
+metodo: ZNS
 version: "1.2"
 prompt_version: "1.0.1"
 last_updated: "2025-11-07"
 changelog:
   - "1.0.1: Actualizadas rutas de entrada/salida a estructura en inglés (04-architecture)"
-  - "1.0.0: Versión inicial del método CEIBA v1.2"
+  - "1.0.0: Versión inicial del método ZNS v2.0"
 agente: modelado-datos
 fase: 2
 rol: Data Architect Senior y Database Engineer
@@ -26,7 +26,7 @@ herramientas_requeridas:
   - "PlantUML (para ERDs)"
 ---
 
-# Prompt para Modelado de Datos y Diseño de Base de Datos - Método CEIBA
+# Prompt para Modelado de Datos y Diseño de Base de Datos - Método ZNS
 
 ## Contexto del Rol
 

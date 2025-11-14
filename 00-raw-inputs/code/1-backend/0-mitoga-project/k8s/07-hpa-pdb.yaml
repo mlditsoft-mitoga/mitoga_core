@@ -1,0 +1,75 @@
+# ============================================================================
+# HORIZONTAL POD AUTOSCALER: mitoga-backend-hpa
+# Purpose: Escalar automáticamente basado en CPU y memoria
+# ============================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mitoga-backend-hpa
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mitoga-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  # CPU Utilization
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # Escalar cuando CPU > 70%
+  # Memory Utilization
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # Escalar cuando Memoria > 80%
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100   # Duplicar pods
+        periodSeconds: 60
+      - type: Pods
+        value: 2     # Agregar máximo 2 pods a la vez
+        periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5 minutos de estabilización
+      policies:
+      - type: Percent
+        value: 50    # Reducir máximo 50%
+        periodSeconds: 60
+      - type: Pods
+        value: 1     # Quitar máximo 1 pod a la vez
+        periodSeconds: 60
+      selectPolicy: Min
+      
+---
+# ============================================================================
+# POD DISRUPTION BUDGET: mitoga-backend-pdb
+# Purpose: Garantizar disponibilidad durante mantenimiento
+# ============================================================================
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mitoga-backend-pdb
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: availability
+spec:
+  minAvailable: 1  # Mínimo 1 pod disponible siempre
+  selector:
+    matchLabels:
+      app: mitoga-backend
+  unhealthyPodEvictionPolicy: IfHealthyBudget

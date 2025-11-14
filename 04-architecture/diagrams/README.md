@@ -8,7 +8,7 @@ Este directorio contiene todos los **diagramas de arquitectura** del proyecto en
 
 ## 📐 Política de Diagramación
 
-**⚠️ IMPORTANTE:** El Método CEIBA v1.2 utiliza **PlantUML + C4 Model** como estándar obligatorio.
+**⚠️ IMPORTANTE:** El Método ZNS v2.0 utiliza **PlantUML + C4 Model** como estándar obligatorio.
 
 Lee la política completa:
 ```
@@ -178,6 +178,6 @@ skinparam titleFontSize 18
 
 ---
 
-**Método:** CEIBA v1.2  
+**Método:** ZNS v2.0  
 **Estándar:** PlantUML + C4 Model (obligatorio)  
 **Ver política completa:** `02-agentes/2.definicion_arquitectura/politica-diagramacion.md`

@@ -2,7 +2,7 @@
 
 **Fase**: 4 (Validación de Calidad)  
 **Versión**: 1.0.0  
-**Método CEIBA**: v1.2
+**Método ZNS**: v1.2
 
 ---
 
@@ -358,5 +358,5 @@ Para dudas sobre este agente:
 
 **Creado**: 7 de noviembre de 2025  
 **Versión**: 1.0.0  
-**Método CEIBA**: v1.2  
-**Autor**: Equipo Método CEIBA
+**Método ZNS**: v1.2  
+**Autor**: Equipo Método ZNS

@@ -1,4 +1,4 @@
-# Política de Diagramación - Método CEIBA v1.2
+# Política de Diagramación - Método ZNS v2.0
 
 ## 📐 Estándar Oficial de Diagramas
 
@@ -10,7 +10,7 @@
 
 ## 🎯 Resumen Ejecutivo
 
-El Método CEIBA establece **PlantUML + C4 Model** como estándar principal para toda la documentación arquitectónica, reemplazando el uso de Mermaid en diagramas enterprise.
+El Método ZNS establece **PlantUML + C4 Model** como estándar principal para toda la documentación arquitectónica, reemplazando el uso de Mermaid en diagramas enterprise.
 
 ### ✅ Decisión Arquitectónica
 
@@ -465,8 +465,8 @@ A: Usa Docker: `plantuml/plantuml:latest` en GitHub Actions/GitLab CI para rende
 
 ### Contacto
 
-- **Equipo CEIBA:** ceiba-support@example.com
-- **Slack:** #ceiba-architecture
+- **Equipo ZNS:** ZNS-support@example.com
+- **Slack:** #ZNS-architecture
 - **Office Hours:** Martes 10-11am (demos de PlantUML)
 
 ---
@@ -488,6 +488,6 @@ A: Usa Docker: `plantuml/plantuml:latest` en GitHub Actions/GitLab CI para rende
 
 ---
 
-**Autor:** Equipo CEIBA  
+**Autor:** Equipo ZNS  
 **Revisado por:** Solutions Architects Senior  
 **Próxima Revisión:** Q2 2026

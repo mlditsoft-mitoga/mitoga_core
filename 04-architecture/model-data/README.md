@@ -165,4 +165,4 @@ mysql database_name < ./database/seeds/seed_initial_data.sql
 ---
 
 **Rol Especializado:** Data Architect Senior & Database Engineer  
-**Versión:** Método CEIBA v1.2
+**Versión:** Método ZNS v2.0

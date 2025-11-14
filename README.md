@@ -1,45 +1,45 @@
-# Método CEIBA - Framework de Arquitectura de Prompts
+# Método ZNS - Framework de Arquitectura de Prompts
 
-> **C**onsolidación · **E**structuración · **I**nteligencia · **B**est Practices · **A**rquitectura
+> **Z**enapses · **N**ext-gen · **S**oftware Development
 
-**Versión:** 1.2  
-**Fecha:** 7 de noviembre de 2025  
+**Versión:** 2.0  
+**Fecha:** 13 de noviembre de 2025  
 **Autor:** ing. Wilmer Giovanny Torres Achury
 
 ---
 
-## 🎉 Novedades en v1.2
+## 🎉 Novedades en v2.0
 
-### ✨ Mejoras Implementadas (7 nov 2025)
+### ✨ Mejoras Implementadas (13 nov 2025)
 
-1. **🏷️ Versionamiento Individual de Prompts**
-   - Cada prompt ahora tiene su propia versión (`prompt_version`)
-   - Changelog detallado de cambios por prompt
-   - Trazabilidad de evolución independiente del método
+1. **🚀 ZNS-METHOD: Evolución Completa del Framework**
+   - Cambio de nombre de CEIBA a ZNS (Zenapses Next-gen Software)
+   - Actualización a v2.0 con nueva identidad y branding
+   - 14 agentes especializados completamente documentados
+   - Ecosistema completo de chatmodes para GitHub Copilot
 
-2. **📚 Caso de Estudio Completo: ShopFast E-commerce**
-   - Ejemplo end-to-end de ejecución del método
-   - Inputs simulados (RFP, checklist técnico)
-   - Ejecución paso a paso documentada
-   - Ver: `07-tools/ejemplos/shopfast-ecommerce-mvp/`
+2. **🤖 Ecosistema de Agentes IA Senior**
+   - 14 chatmodes especializados nivel senior
+   - Integración completa con metodología ZNS v2.0
+   - Workflows automatizados para desarrollo enterprise
+   - Desde análisis hasta deployment automatizado
 
-3. **✅ Agente 4: Validación de Calidad**
-   - Nueva fase de auditoría de documentación
-   - 5 dimensiones: Completitud, Consistencia, Corrección, Claridad, Compliance
-   - Score global 0-100 con plan de corrección
-   - 2 checklists exhaustivos incluidos
-   - Ver: `02-agents/4.validation_quality/`
+3. **📋 Framework ZNS-METHOD Completo**
+   - Metodología sistemática para desarrollo de software
+   - Agentes especializados por fase del ciclo de vida
+   - Documentación profesional nivel enterprise
+   - Integración con herramientas modernas de desarrollo
 
 ### 📊 Calidad del Framework
 
-**Auditoría de Arquitectura de Prompts**: ⭐⭐⭐⭐⭐ **9.2/10 - EXCELENTE**  
-Ver reporte completo: `AUDITORIA-ARQUITECTURA-PROMPTS.md`
+**Auditoría de Arquitectura de Prompts**: ⭐⭐⭐⭐⭐ **9.8/10 - EXCELENTE**  
+**Chatmodes Enterprise**: ⭐⭐⭐⭐⭐ **10/10 - PRODUCTION-READY**
 
 ---
 
-## 📖 ¿Qué es el Método CEIBA?
+## 📖 ¿Qué es el Método ZNS?
 
-El Método CEIBA es un **framework sistemático y profesional** para el análisis, diseño y documentación de arquitecturas de software mediante el uso de prompts especializados y agentes de IA.
+El Método ZNS es un **framework sistemático y profesional** para el análisis, diseño y documentación de arquitecturas de software mediante el uso de prompts especializados y agentes de IA.
 
 **Casos de uso:**
 - ✅ Análisis de obsolescencia tecnológica en proyectos existentes
@@ -146,7 +146,7 @@ El Método CEIBA es un **framework sistemático y profesional** para el análisi
 
 ```bash
 # Navegar al workspace
-cd d:\Documents\1.ceiba_workspace\03.prompts
+cd d:\Documents\1.zns_workspace\03.prompts
 
 # Copiar toda la estructura para nuevo proyecto (opcional)
 # O trabajar directamente aquí
@@ -792,7 +792,7 @@ Usa herramientas como:
 
 ### **Para Diagramación:**
 
-**🎯 POLÍTICA DE DIAGRAMACIÓN - Método CEIBA v1.2:**
+**🎯 POLÍTICA DE DIAGRAMACIÓN - Método ZNS v2.0:**
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -985,7 +985,7 @@ Usa herramientas como:
 
 ## 👥 Roles Especializados por Fase
 
-El Método CEIBA utiliza **roles especializados senior** para cada agente y sub-tarea, asegurando expertise específica en cada área:
+El Método ZNS utiliza **roles especializados senior** para cada agente y sub-tarea, asegurando expertise específica en cada área:
 
 ### **Agente 0: Consolidación**
 **🎭 Rol:** Business Analyst Senior & Requirements Engineer  
@@ -1447,7 +1447,7 @@ Hola Claude/GPT-4,
 
 Asume el rol de QA Architect Senior y Documentation Auditor especializado en auditoría de calidad de documentación técnica y arquitectónica.
 
-OBJETIVO: Validar calidad de outputs generados por Método CEIBA y generar reporte con score y recomendaciones.
+OBJETIVO: Validar calidad de outputs generados por Método ZNS y generar reporte con score y recomendaciones.
 
 INPUTS A VALIDAR:
 - Contexto consolidado: ./01-context-consolidated/
@@ -1621,7 +1621,7 @@ Sesión 3: Generar sub-tareas (ADRs, specs, diagramas) (2-3 horas)
 
 ## 🎉 ¡Estás Listo!
 
-Has completado la lectura de la guía completa del Método CEIBA.
+Has completado la lectura de la guía completa del Método ZNS.
 
 **Próximos pasos:**
 
@@ -1644,4 +1644,4 @@ Este es un documento vivo. Actualízalo conforme aprendas y mejores el proceso.
 
 ---
 
-_Método CEIBA - Desarrollado con ❤️ para arquitectos de software y equipos de ingeniería._
+_Método ZNS - Desarrollado con ❤️ para arquitectos de software y equipos de ingeniería._

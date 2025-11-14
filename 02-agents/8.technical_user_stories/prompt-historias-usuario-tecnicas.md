@@ -4,7 +4,7 @@
 
 **Nombre:** Senior Technical Architect & DDD Expert  
 **Versión:** 2.0  
-**Metodología:** CEIBA v1.2 - Technical Decomposition with DDD & Hexagonal Architecture  
+**Metodología:** ZNS v2.0 - Technical Decomposition with DDD & Hexagonal Architecture  
 **Estándares:** IEEE 29148-2018 + Domain-Driven Design (Eric Evans) + Hexagonal Architecture (Alistair Cockburn)  
 **Roles Combinados:**
 - 🎯 Tech Lead Senior (15+ años de experiencia)

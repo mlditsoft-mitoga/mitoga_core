@@ -1,0 +1,143 @@
+# ============================================================================
+# CONFIG MAP: mitoga-app-config
+# Purpose: Configuración de aplicación Spring Boot (application.yml)
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mitoga-app-config
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    type: configuration
+data:
+  application.yml: |
+    server:
+      port: 8080
+      shutdown: graceful
+      compression:
+        enabled: true
+        mime-types: text/html,text/xml,text/plain,text/css,application/json,application/javascript
+        
+    spring:
+      application:
+        name: mitoga-backend
+      profiles:
+        active: production
+      
+      datasource:
+        url: jdbc:postgresql://postgres-external.databases.svc.cluster.local:5432/mitoga_db
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+        hikari:
+          maximum-pool-size: 20
+          minimum-idle: 5
+          connection-timeout: 30000
+          idle-timeout: 600000
+          max-lifetime: 1800000
+          
+      jpa:
+        hibernate:
+          ddl-auto: validate
+        show-sql: false
+        properties:
+          hibernate:
+            format_sql: true
+            use_sql_comments: false
+            jdbc:
+              batch_size: 20
+            order_inserts: true
+            order_updates: true
+            
+      flyway:
+        enabled: true
+        locations: classpath:db/migration
+        baseline-on-migrate: true
+        validate-on-migrate: true
+        
+      data:
+        redis:
+          host: ${REDIS_HOST:redis.databases.svc.cluster.local}
+          port: ${REDIS_PORT:6379}
+          password: ${REDIS_PASSWORD}
+          timeout: 60000ms
+          lettuce:
+            pool:
+              max-active: 8
+              max-idle: 8
+              min-idle: 2
+              
+      mail:
+        host: ${MAIL_HOST}
+        port: ${MAIL_PORT:587}
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
+        properties:
+          mail:
+            smtp:
+              auth: true
+              starttls:
+                enable: true
+                
+      cloud:
+        vault:
+          enabled: true
+          host: vault.cicd.svc.cluster.local
+          port: 8200
+          scheme: http
+          authentication: TOKEN
+          token: ${VAULT_TOKEN}
+          kv:
+            enabled: true
+            backend: secret
+            
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,prometheus,metrics
+          base-path: /actuator
+      endpoint:
+        health:
+          show-details: when-authorized
+          probes:
+            enabled: true
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+            
+    logging:
+      level:
+        root: INFO
+        com.mitoga: DEBUG
+        org.springframework.web: INFO
+        org.hibernate.SQL: DEBUG
+        org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+      pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+        
+---
+# ============================================================================
+# CONFIG MAP: mitoga-prometheus-config
+# Purpose: Configuración para ServiceMonitor de Prometheus
+# ============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mitoga-prometheus-config
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    type: monitoring
+data:
+  prometheus.yml: |
+    scrape_configs:
+      - job_name: 'mitoga-backend'
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['mitoga-backend-service:8080']
+            labels:
+              app: 'mitoga-backend'
+              env: 'production'

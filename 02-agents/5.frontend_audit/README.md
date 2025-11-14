@@ -28,7 +28,7 @@ Este directorio contiene el framework completo para realizar auditorías técnic
 
 ---
 
-## 🎯 Metodología CEIBA Frontend Audit
+## 🎯 Metodología ZNS Frontend Audit
 
 ### Sistema de Calificación Global (0-100 puntos)
 
@@ -339,18 +339,18 @@ Por favor documenta y comparte con el equipo.
 **Documentación Completa**: Ver prompt-maestro-auditoria-frontend.md  
 **Actualizaciones**: Noviembre 2025  
 **Versión**: 1.0  
-**Método**: CEIBA Frontend Audit Framework
+**Método**: ZNS Frontend Audit Framework
 
 ---
 
 ## 🏆 Certificación
 
 Proyectos que logren:
-- **Score >90**: 🥇 CEIBA Gold Certified
-- **Score >80**: 🥈 CEIBA Silver Certified
-- **Score >70**: 🥉 CEIBA Bronze Certified
+- **Score >90**: 🥇 ZNS Gold Certified
+- **Score >80**: 🥈 ZNS Silver Certified
+- **Score >70**: 🥉 ZNS Bronze Certified
 
 ---
 
-*Sistema creado por el equipo de Auditoría Técnica CEIBA*  
+*Sistema creado por el equipo de Auditoría Técnica ZNS*  
 *Última actualización: Noviembre 2025*

@@ -99,4 +99,4 @@ Usuario ingresa email y contraseña en formulario de login. Sistema valida crede
 ---
 
 **Última actualización:** 08/11/2025  
-**Autor:** Product Owner - CEIBA v1.2
+**Autor:** Product Owner - ZNS v2.0

@@ -2,7 +2,7 @@
 
 **Proyecto:** MI-TOGA - Plataforma de Tutorías Virtuales  
 **Cliente:** ZENAPSES S.A.S  
-**Product Owner:** Product Owner Senior - CEIBA v1.2  
+**Product Owner:** Product Owner Senior - ZNS v2.0  
 **Versión del Backlog:** 2.0.0  
 **Última actualización:** 2025-11-08
 
@@ -366,7 +366,7 @@ Panel de administración y moderación de la plataforma.
 
 ---
 
-**Generado con:** CEIBA v1.2 | **Referencias:** IEEE 29148-2018, Agile Alliance, INVEST Criteria
+**Generado con:** ZNS v2.0 | **Referencias:** IEEE 29148-2018, Agile Alliance, INVEST Criteria
 
 | Módulo | # HUs | Story Points | Prioridad Promedio | Estado |
 |--------|-------|--------------|-------------------|--------|
@@ -640,8 +640,8 @@ Panel de administración y moderación de la plataforma.
 
 | Versión | Fecha | Autor | Cambios |
 |---------|-------|-------|---------|
-| 2.0.0 | 2025-11-08 | Product Owner Senior - CEIBA v1.2 | ✅ Release 1.1 completa: +19 HUs (Videollamadas, Notificaciones, Admin) |
-| 1.0.0 | 2025-11-07 | Product Owner Senior - CEIBA v1.2 | ✅ MVP completo: 34 HUs (Autenticación, Marketplace, Perfiles, Reservas, Pagos) |
+| 2.0.0 | 2025-11-08 | Product Owner Senior - ZNS v2.0 | ✅ Release 1.1 completa: +19 HUs (Videollamadas, Notificaciones, Admin) |
+| 1.0.0 | 2025-11-07 | Product Owner Senior - ZNS v2.0 | ✅ MVP completo: 34 HUs (Autenticación, Marketplace, Perfiles, Reservas, Pagos) |
 
 **Próxima versión planificada:** 2.1.0 (Release 1.2 - COULD HAVE features)
 
@@ -662,4 +662,4 @@ Panel de administración y moderación de la plataforma.
 
 **Estado del Backlog:** 📝 Inicializado - Pendiente de generación de HUs  
 **Última actualización:** 2025-11-08  
-**Método:** CEIBA v1.2 - User Stories Agent
+**Método:** ZNS v2.0 - User Stories Agent

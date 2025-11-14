@@ -258,6 +258,6 @@ Esquema completo de base de datos:
 
 ---
 
-**Método:** CEIBA v1.2  
+**Método:** ZNS v2.0  
 **Roles:** Solutions Architect Senior & Cloud Architect  
 **Calidad:** Especificaciones detalladas para implementación directa

@@ -340,7 +340,7 @@ Bajos:    [██░░░░░░░░] 20%
 **Versión:** 1.0  
 **Última Actualización:** {Fecha}  
 **Próxima Revisión:** {Fecha + 2 semanas}  
-**Método:** CEIBA v1.2 - Auditoría Técnica Integral
+**Método:** ZNS v2.0 - Auditoría Técnica Integral
 
 ---
 

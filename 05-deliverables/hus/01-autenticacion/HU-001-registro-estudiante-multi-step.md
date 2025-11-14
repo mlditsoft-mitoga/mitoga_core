@@ -225,5 +225,5 @@ El sistema incluye:
 ---
 
 **Última actualización:** 08/11/2025  
-**Autor:** Product Owner - CEIBA v1.2  
+**Autor:** Product Owner - ZNS v2.0  
 **Revisores:** Equipo de desarrollo, UX, QA, Legal (cumplimiento normativa menores)

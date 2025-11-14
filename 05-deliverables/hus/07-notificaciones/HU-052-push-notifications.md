@@ -115,4 +115,4 @@ Implementación de Web Push API (Service Worker) para enviar notificaciones al n
 ---
 
 **Última actualización:** 2025-11-08  
-**Autor:** Product Owner Senior - CEIBA v1.2
+**Autor:** Product Owner Senior - ZNS v2.0

@@ -608,6 +608,6 @@ STEP 4: Resumen y Envío
 
 ---
 
-**Documento:** CEIBA v1.2 - Consolidación Profunda  
+**Documento:** ZNS v2.0 - Consolidación Profunda  
 **Fuentes:** PROYECTO_CONTEXTO.md (roadmap) + Código frontend mi-toga/ (estructura)  
 **Nota:** RFs extraídos por ingeniería inversa del código + documentación. Validación pendiente con Product Owner.

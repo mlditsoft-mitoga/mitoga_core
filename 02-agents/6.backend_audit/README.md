@@ -1,4 +1,4 @@
-# 🔍 Agente de Auditoría Técnica Integral - CEIBA v1.2
+# 🔍 Agente de Auditoría Técnica Integral - ZNS v2.0
 
 ## 📋 Descripción General
 
@@ -386,7 +386,7 @@ tree src/ -L 3
 
 ### Documentación Adicional
 
-- **Método CEIBA v1.2:** `README.md` principal del proyecto
+- **Método ZNS v2.0:** `README.md` principal del proyecto
 - **Fase 0 - Consolidación:** `02-agents/0.consolidation_context/`
 - **Fase 1 - Análisis Obsolescencia:** `02-agents/1.obsolescence_analysis/`
 - **Fase 2 - Arquitectura:** `02-agents/2.definition_of_architecture/`
@@ -430,7 +430,7 @@ A: Híbrido - herramientas automáticas + análisis experto manual.
 Antes de comenzar la auditoría, verificar:
 
 - [ ] Acceso completo al repositorio del código fuente
-- [ ] Documentación consolidada generada (Fase 0 - CEIBA)
+- [ ] Documentación consolidada generada (Fase 0 - ZNS)
 - [ ] Credenciales para entornos de prueba (opcional)
 - [ ] Herramientas de análisis instaladas
   - [ ] Java JDK (para proyectos Java)
@@ -456,7 +456,7 @@ Antes de comenzar la auditoría, verificar:
 
 ## 📄 Licencia y Uso
 
-Este agente es parte del **Método CEIBA v1.2** para auditoría y modernización de aplicaciones.
+Este agente es parte del **Método ZNS v2.0** para auditoría y modernización de aplicaciones.
 
 **Autor:** GitHub Copilot - Senior Technical Auditor  
 **Versión:** 1.0.0  

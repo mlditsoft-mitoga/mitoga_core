@@ -2,7 +2,7 @@
 
 ## 📁 Propósito
 
-Este directorio contiene los **documentos finales profesionales** listos para entregar al cliente, generados a partir de todo el trabajo del Método CEIBA.
+Este directorio contiene los **documentos finales profesionales** listos para entregar al cliente, generados a partir de todo el trabajo del Método ZNS.
 
 ---
 
@@ -129,6 +129,6 @@ Acme_Diagramas_v1.0_2025-11-07.zip
 
 ## 📞 Soporte
 
-**Proceso:** Método CEIBA v1.2  
+**Proceso:** Método ZNS v2.0  
 **Fase:** 5 - Entregables Finales  
 **Documentación:** Ver `README.md` principal para guías completas

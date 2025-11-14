@@ -1,0 +1,88 @@
+# Configuración Prometheus para ZNS-METHOD
+# Versión: 2.0
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'zns-method'
+    environment: 'production'
+
+# Reglas de alertas
+rule_files:
+  - "alerts/*.yml"
+
+# Configuración de scraping
+scrape_configs:
+  # ZNS Gateway metrics
+  - job_name: 'zns-gateway'
+    static_configs:
+      - targets: ['zns-gateway:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    params:
+      format: ['prometheus']
+
+  # Text Generation WebUI metrics
+  - job_name: 'textgen-webui'
+    static_configs:
+      - targets: ['zns-textgen:7860']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # PostgreSQL metrics (usando postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis metrics (usando redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Nginx metrics (usando nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 30s
+
+  # Node metrics (host system)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+    scrape_interval: 30s
+
+  # NVIDIA GPU metrics (usando nvidia_gpu_exporter)
+  - job_name: 'nvidia-gpu'
+    static_configs:
+      - targets: ['gpu-exporter:9445']
+    scrape_interval: 15s
+
+  # Docker metrics (usando cadvisor)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+
+# Configuración de almacenamiento
+storage:
+  tsdb:
+    retention.time: 15d
+    retention.size: 10GB
+    path: /prometheus
+    
+# Configuración de alertas
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+      timeout: 10s
+      
+# Configuración de logging
+log_level: info
+log_format: json

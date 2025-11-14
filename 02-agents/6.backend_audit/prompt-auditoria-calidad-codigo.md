@@ -1,7 +1,7 @@
 # Prompt - Auditoría de Calidad de Código
 
 ---
-**Método:** CEIBA v1.2  
+**Método:** ZNS v2.0  
 **Área:** Calidad y Mantenibilidad del Código  
 **Prioridad:** 🟡 MEDIA  
 **Duración:** 4 horas  

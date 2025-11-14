@@ -3,7 +3,7 @@
 **Proyecto:** MI-TOGA - Plataforma de Tutorías Virtuales  
 **Cliente:** ZENAPSES S.A.S  
 **Fecha:** 8 de noviembre de 2025  
-**Método:** CEIBA v1.2
+**Método:** ZNS v2.0
 
 ---
 
@@ -401,7 +401,7 @@ ZES-METHOD/
 ## 📞 Contacto y Soporte
 
 **Documentación adicional:**
-- Método CEIBA v1.2: `02-agents/2.definition_of_architecture/prompt-arquitectura-soluciones.md`
+- Método ZNS v2.0: `02-agents/2.definition_of_architecture/prompt-arquitectura-soluciones.md`
 - Plantillas: `02-agents/2.definition_of_architecture/plantilla-*.md`
 
 **Herramientas para renderizar diagramas:**
@@ -416,7 +416,7 @@ plantuml -tsvg 04-architecture/diagrams/*.puml
 
 ---
 
-**Documento generado por:** Método CEIBA v1.2 - Solutions Architecture Prompt  
+**Documento generado por:** Método ZNS v2.0 - Solutions Architecture Prompt  
 **Última actualización:** 2025-11-08  
 **Versión:** 1.0  
 **Estado:** ✅ Fase 1-2 Completadas

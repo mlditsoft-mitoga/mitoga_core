@@ -443,7 +443,7 @@ Antes de entregar, verificar:
 
 **Versión**: 1.0  
 **Fecha**: Noviembre 2025  
-**Método**: CEIBA Frontend Audit Framework  
+**Método**: ZNS Frontend Audit Framework  
 **Nivel**: Senior
 
 ---

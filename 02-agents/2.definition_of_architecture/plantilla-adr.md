@@ -253,4 +253,4 @@ la autonomía de los equipos.
 ---
 
 *Plantilla basada en el formato MADR (Markdown Any Decision Records)*
-*Adaptada para el Método CEIBA*
+*Adaptada para el Método ZNS*

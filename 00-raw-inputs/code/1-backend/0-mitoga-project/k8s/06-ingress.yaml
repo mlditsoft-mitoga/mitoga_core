@@ -1,0 +1,108 @@
+# ============================================================================
+# INGRESS: mitoga-backend-ingress
+# Purpose: Exponer API REST al exterior con SSL/TLS
+# IngressClass: traefik (ya instalado en el cluster)
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mitoga-backend-ingress
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    component: ingress
+  annotations:
+    # Cert-Manager para SSL/TLS automático
+    cert-manager.io/cluster-issuer: "selfsigned-issuer"
+    
+    # Traefik annotations
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.middlewares: "mi-toga-rate-limit@kubernetescrd"
+    
+    # Redirect HTTP to HTTPS
+    traefik.ingress.kubernetes.io/redirect-entry-point: "https"
+    traefik.ingress.kubernetes.io/redirect-permanent: "true"
+    
+    # CORS configuration
+    traefik.ingress.kubernetes.io/custom-response-headers: |
+      Access-Control-Allow-Origin: *
+      Access-Control-Allow-Methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+      Access-Control-Allow-Headers: Content-Type,Authorization
+      
+spec:
+  ingressClassName: traefik
+  
+  tls:
+  - hosts:
+    - api.mitoga.local
+    - mitoga.mitoga.local
+    secretName: mitoga-backend-tls
+    
+  rules:
+  # Regla 1: API principal
+  - host: api.mitoga.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mitoga-backend-service
+            port:
+              number: 8080
+              
+  # Regla 2: Dominio principal
+  - host: mitoga.mitoga.local
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: mitoga-backend-service
+            port:
+              number: 8080
+              
+---
+# ============================================================================
+# MIDDLEWARE: Rate Limiting con Traefik
+# Purpose: Limitar requests por IP para prevenir abuso
+# ============================================================================
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: rate-limit
+  namespace: mi-toga
+spec:
+  rateLimit:
+    average: 100      # 100 requests por segundo promedio
+    burst: 200        # Hasta 200 requests en burst
+    period: 1s
+    
+---
+# ============================================================================
+# MIDDLEWARE: Retry automático
+# Purpose: Reintentar requests fallidos
+# ============================================================================
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: retry
+  namespace: mi-toga
+spec:
+  retry:
+    attempts: 3
+    initialInterval: 100ms
+    
+---
+# ============================================================================
+# MIDDLEWARE: Compress responses
+# Purpose: Comprimir respuestas HTTP
+# ============================================================================
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: compress
+  namespace: mi-toga
+spec:
+  compress: {}

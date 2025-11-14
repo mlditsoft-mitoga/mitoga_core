@@ -1,4 +1,4 @@
-# ✅ Checklist de Completitud - Método CEIBA v1.2
+# ✅ Checklist de Completitud - Método ZNS v2.0
 
 **Propósito**: Verificar que todos los artefactos obligatorios han sido generados y contienen las secciones requeridas.
 
@@ -303,4 +303,4 @@ Para módulos de: Autenticación, Autorización, Pagos, Datos Personales
 
 **Versión**: 1.0.0  
 **Fecha**: 7 de noviembre de 2025  
-**Método CEIBA**: v1.2
+**Método ZNS**: v1.2

@@ -2012,6 +2012,6 @@ public class HexagonalArchitectureTest {
 
 ---
 
-**Generado con:** CEIBA v1.2 - Technical User Stories Architect  
+**Generado con:** ZNS v2.0 - Technical User Stories Architect  
 **Versión HUT:** 1.0  
 **Última actualización:** 2025-11-08

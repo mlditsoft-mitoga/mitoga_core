@@ -42,7 +42,7 @@ Proveer documentación estructurada y organizada que sirva como base de conocimi
 
 ## 🔄 Proceso de Consolidación
 
-Este contexto fue generado mediante el **Método CEIBA v1.2** utilizando el prompt maestro:
+Este contexto fue generado mediante el **Método ZNS v2.0** utilizando el prompt maestro:
 ```
 02-agents/0.consolidation_context/prompt-maestro-consolidacion.md
 ```
@@ -74,5 +74,5 @@ Este contexto fue generado mediante el **Método CEIBA v1.2** utilizando el prom
 ---
 
 **Última actualización:** Noviembre 2025  
-**Metodología:** CEIBA v1.2  
+**Metodología:** ZNS v2.0  
 **Responsable:** Equipo de Arquitectura y Análisis

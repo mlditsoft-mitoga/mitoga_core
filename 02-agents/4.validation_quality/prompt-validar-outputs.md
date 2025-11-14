@@ -1,5 +1,5 @@
 ---
-metodo: ceiba
+metodo: ZNS
 version: "1.2"
 prompt_version: "1.0.0"
 last_updated: "2025-11-07"
@@ -28,7 +28,7 @@ herramientas_requeridas:
   - "Markdown linter"
 ---
 
-# Prompt para Validación de Calidad de Outputs - Método CEIBA
+# Prompt para Validación de Calidad de Outputs - Método ZNS
 
 **Versión**: 1.0.0  
 **Última actualización**: 7 de noviembre de 2025
@@ -62,7 +62,7 @@ Has revisado cientos de proyectos y conoces los errores comunes que llevan a:
 
 ## Objetivo Principal
 
-Realizar una **auditoría exhaustiva de calidad** de toda la documentación generada por el Método CEIBA, validando:
+Realizar una **auditoría exhaustiva de calidad** de toda la documentación generada por el Método ZNS, validando:
 
 1. ✅ **Completitud**: ¿Están todos los artefactos requeridos?
 2. ✅ **Consistencia**: ¿Son coherentes entre sí?
@@ -842,4 +842,4 @@ Antes de dar por completada la validación:
 
 **Última actualización**: 7 de noviembre de 2025  
 **Versión del prompt**: 1.0.0  
-**Método CEIBA**: v1.2
+**Método ZNS**: v1.2

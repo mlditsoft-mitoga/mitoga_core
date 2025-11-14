@@ -503,6 +503,6 @@ Admin → [Todos los módulos] (moderación)
 
 ---
 
-**Documento:** CEIBA v1.2 - Mapa de Módulos del Frontend  
+**Documento:** ZNS v2.0 - Mapa de Módulos del Frontend  
 **Basado en:** Estructura de código mi-toga/ (exploración directa)  
 **Limitación:** Backend no disponible para mapeo (0% implementado)

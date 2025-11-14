@@ -1,0 +1,134 @@
+# ============================================================================
+# SERVICE MONITOR: mitoga-backend-servicemonitor
+# Purpose: Configurar Prometheus para scraping de métricas
+# ============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: mitoga-backend-servicemonitor
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    prometheus: kube-prometheus
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: mitoga-backend
+  namespaceSelector:
+    matchNames:
+    - mi-toga
+  endpoints:
+  - port: actuator
+    path: /actuator/prometheus
+    interval: 15s
+    scrapeTimeout: 10s
+    scheme: http
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'jvm.*|http.*|process.*|system.*|tomcat.*|hikaricp.*'
+      action: keep
+      
+---
+# ============================================================================
+# PROMETHEUS RULE: mitoga-backend-alerts
+# Purpose: Reglas de alertas para Prometheus
+# ============================================================================
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: mitoga-backend-alerts
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: mitoga-backend
+    interval: 30s
+    rules:
+    # Alert: Pod Down
+    - alert: MitogaBackendDown
+      expr: up{job="mitoga-backend-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend is down"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is down for more than 1 minute."
+        
+    # Alert: High CPU Usage
+    - alert: MitogaBackendHighCPU
+      expr: rate(process_cpu_usage[5m]) > 0.80
+      for: 5m
+      labels:
+        severity: warning
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend high CPU usage"
+        description: "Pod {{ $labels.pod }} CPU usage is above 80% for 5 minutes."
+        
+    # Alert: High Memory Usage
+    - alert: MitogaBackendHighMemory
+      expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.90
+      for: 5m
+      labels:
+        severity: warning
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend high memory usage"
+        description: "Pod {{ $labels.pod }} heap memory usage is above 90% for 5 minutes."
+        
+    # Alert: High Error Rate
+    - alert: MitogaBackendHighErrorRate
+      expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 10
+      for: 5m
+      labels:
+        severity: critical
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend high error rate"
+        description: "Pod {{ $labels.pod }} has more than 10 errors/sec for 5 minutes."
+        
+    # Alert: Slow Response Time
+    - alert: MitogaBackendSlowResponse
+      expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 2
+      for: 5m
+      labels:
+        severity: warning
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend slow response time"
+        description: "Pod {{ $labels.pod }} p95 response time is above 2 seconds for 5 minutes."
+        
+    # Alert: Database Connection Pool Exhaustion
+    - alert: MitogaBackendDBPoolExhaustion
+      expr: hikaricp_connections_active / hikaricp_connections_max > 0.90
+      for: 5m
+      labels:
+        severity: critical
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend DB connection pool exhaustion"
+        description: "Pod {{ $labels.pod }} DB connection pool is above 90% usage for 5 minutes."
+        
+    # Alert: High GC Time
+    - alert: MitogaBackendHighGCTime
+      expr: rate(jvm_gc_pause_seconds_sum[5m]) > 0.50
+      for: 5m
+      labels:
+        severity: warning
+        component: mitoga-backend
+      annotations:
+        summary: "Mitoga Backend high GC time"
+        description: "Pod {{ $labels.pod }} is spending more than 50% time in GC for 5 minutes."

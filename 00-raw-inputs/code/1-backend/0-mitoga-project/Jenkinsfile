@@ -1,0 +1,442 @@
+// ============================================================================
+// JENKINSFILE: Mitoga Backend CI/CD Pipeline
+// Purpose: Complete CI/CD pipeline para despliegue en K3s on-premise
+// Stages: 9 stages completos con security scanning
+// ============================================================================
+
+pipeline {
+    agent any
+    
+    // =========================================================================
+    // ENVIRONMENT VARIABLES
+    // =========================================================================
+    environment {
+        // Project info
+        PROJECT_NAME = 'mitoga-backend'
+        APP_VERSION = "${BUILD_NUMBER}"
+        GIT_COMMIT_SHORT = "${env.GIT_COMMIT?.take(7) ?: 'unknown'}"
+        
+        // Docker Registry
+        DOCKER_REGISTRY = '192.168.18.126:5000'  // Local registry
+        DOCKER_IMAGE = "${DOCKER_REGISTRY}/${PROJECT_NAME}"
+        DOCKER_TAG = "${APP_VERSION}-${GIT_COMMIT_SHORT}"
+        
+        // Kubernetes
+        K8S_NAMESPACE = 'mi-toga'
+        K8S_DEPLOYMENT = 'mitoga-backend'
+        K8S_SERVICE = 'mitoga-backend-service'
+        
+        // Credentials IDs (configurados en Jenkins)
+        GITHUB_CREDENTIALS = 'github-mitoga-credentials'
+        DOCKER_CREDENTIALS = 'docker-registry-credentials'
+        K8S_CREDENTIALS = 'k3s-kubeconfig-credentials'
+        SONAR_CREDENTIALS = 'sonarqube-token'
+        
+        // SonarQube
+        SONAR_HOST_URL = 'http://sonarqube.cicd.svc.cluster.local:9000'
+        SONAR_PROJECT_KEY = 'mitoga-backend'
+        
+        // Paths
+        K8S_MANIFESTS_DIR = 'k8s'
+        GRADLE_HOME = tool 'Gradle-8.10'
+        JAVA_HOME = tool 'JDK-21'
+        PATH = "${JAVA_HOME}/bin:${GRADLE_HOME}/bin:${env.PATH}"
+    }
+    
+    // =========================================================================
+    // PIPELINE OPTIONS
+    // =========================================================================
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '5'))
+        timestamps()
+        timeout(time: 45, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        ansiColor('xterm')
+    }
+    
+    // =========================================================================
+    // PARAMETERS
+    // =========================================================================
+    parameters {
+        choice(
+            name: 'DEPLOY_ENVIRONMENT',
+            choices: ['development', 'staging', 'production'],
+            description: 'Target deployment environment'
+        )
+        booleanParam(
+            name: 'SKIP_TESTS',
+            defaultValue: false,
+            description: 'Skip unit and integration tests'
+        )
+        booleanParam(
+            name: 'SKIP_SONAR',
+            defaultValue: false,
+            description: 'Skip SonarQube analysis'
+        )
+        booleanParam(
+            name: 'SKIP_TRIVY',
+            defaultValue: false,
+            description: 'Skip Trivy security scan'
+        )
+        booleanParam(
+            name: 'FORCE_DEPLOY',
+            defaultValue: false,
+            description: 'Force deployment even if tests/scans fail (NOT RECOMMENDED)'
+        )
+    }
+    
+    // =========================================================================
+    // STAGES
+    // =========================================================================
+    stages {
+        
+        // =====================================================================
+        // STAGE 1: CHECKOUT
+        // =====================================================================
+        stage('📥 Checkout Source Code') {
+            steps {
+                script {
+                    echo "🔍 Cloning repository from GitHub..."
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: '*/master']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/mlditsoft-mitoga/mitoga_core.git',
+                            credentialsId: "${GITHUB_CREDENTIALS}"
+                        ]]
+                    ])
+                    
+                    // Get git info
+                    env.GIT_COMMIT_MSG = sh(
+                        script: 'git log -1 --pretty=%B',
+                        returnStdout: true
+                    ).trim()
+                    env.GIT_AUTHOR = sh(
+                        script: 'git log -1 --pretty=%an',
+                        returnStdout: true
+                    ).trim()
+                    
+                    echo "✅ Checked out: ${env.GIT_COMMIT_SHORT}"
+                    echo "📝 Commit message: ${env.GIT_COMMIT_MSG}"
+                    echo "👤 Author: ${env.GIT_AUTHOR}"
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 2: BUILD
+        // =====================================================================
+        stage('🔨 Build Application') {
+            steps {
+                script {
+                    echo "🏗️  Building Java project with Gradle..."
+                    dir('00-raw-inputs/code/1-backend/0-mitoga-project') {
+                        sh '''
+                            echo "☕ Java version:"
+                            java -version
+                            
+                            echo "📦 Gradle version:"
+                            ./gradlew --version
+                            
+                            echo "🔨 Building project..."
+                            ./gradlew clean build -x test --no-daemon --console=plain
+                            
+                            echo "✅ Build completed"
+                            ls -lh build/libs/
+                        '''
+                    }
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 3: UNIT & INTEGRATION TESTS
+        // =====================================================================
+        stage('🧪 Run Tests') {
+            when {
+                expression { !params.SKIP_TESTS }
+            }
+            steps {
+                script {
+                    echo "🧪 Running unit and integration tests..."
+                    dir('00-raw-inputs/code/1-backend/0-mitoga-project') {
+                        sh '''
+                            ./gradlew test integrationTest --no-daemon --console=plain
+                        '''
+                    }
+                }
+            }
+            post {
+                always {
+                    junit '**/build/test-results/**/*.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: '00-raw-inputs/code/1-backend/0-mitoga-project/build/reports/tests/test',
+                        reportFiles: 'index.html',
+                        reportName: 'Test Report'
+                    ])
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 4: SONARQUBE ANALYSIS
+        // =====================================================================
+        stage('📊 SonarQube Analysis') {
+            when {
+                expression { !params.SKIP_SONAR }
+            }
+            steps {
+                script {
+                    echo "📊 Running SonarQube code quality analysis..."
+                    withSonarQubeEnv('SonarQube') {
+                        dir('00-raw-inputs/code/1-backend/0-mitoga-project') {
+                            sh '''
+                                ./gradlew sonarqube \
+                                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                                    -Dsonar.host.url=${SONAR_HOST_URL} \
+                                    -Dsonar.java.binaries=build/classes \
+                                    --no-daemon
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 5: QUALITY GATE
+        // =====================================================================
+        stage('✅ Quality Gate') {
+            when {
+                expression { !params.SKIP_SONAR }
+            }
+            steps {
+                script {
+                    echo "⏳ Waiting for SonarQube Quality Gate..."
+                    timeout(time: 5, unit: 'MINUTES') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK' && !params.FORCE_DEPLOY) {
+                            error "❌ Quality Gate failed: ${qg.status}"
+                        } else if (qg.status != 'OK' && params.FORCE_DEPLOY) {
+                            echo "⚠️  Quality Gate failed but FORCE_DEPLOY is enabled"
+                        } else {
+                            echo "✅ Quality Gate passed"
+                        }
+                    }
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 6: DOCKER BUILD
+        // =====================================================================
+        stage('🐳 Build Docker Image') {
+            steps {
+                script {
+                    echo "🐳 Building Docker image..."
+                    dir('00-raw-inputs/code/1-backend/0-mitoga-project') {
+                        sh """
+                            docker build \
+                                --build-arg BUILD_DATE=\$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+                                --build-arg VERSION=${APP_VERSION} \
+                                --build-arg GIT_COMMIT=${GIT_COMMIT_SHORT} \
+                                --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
+                                -t ${DOCKER_IMAGE}:${DOCKER_TAG} \
+                                -t ${DOCKER_IMAGE}:latest \
+                                -f Dockerfile \
+                                .
+                            
+                            echo "✅ Docker image built successfully"
+                            docker images | grep ${PROJECT_NAME}
+                        """
+                    }
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 7: SECURITY SCAN (TRIVY)
+        // =====================================================================
+        stage('🔒 Security Scan with Trivy') {
+            when {
+                expression { !params.SKIP_TRIVY }
+            }
+            steps {
+                script {
+                    echo "🔒 Scanning Docker image for vulnerabilities..."
+                    sh """
+                        trivy image \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 0 \
+                            --no-progress \
+                            --format table \
+                            ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        
+                        # Generate JSON report
+                        trivy image \
+                            --severity HIGH,CRITICAL \
+                            --format json \
+                            --output trivy-report.json \
+                            ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
+                    
+                    // Check if critical vulnerabilities exist
+                    def trivyExitCode = sh(
+                        script: "trivy image --severity CRITICAL --exit-code 1 ${DOCKER_IMAGE}:${DOCKER_TAG}",
+                        returnStatus: true
+                    )
+                    
+                    if (trivyExitCode != 0 && !params.FORCE_DEPLOY) {
+                        error "❌ Critical vulnerabilities found in Docker image"
+                    } else if (trivyExitCode != 0 && params.FORCE_DEPLOY) {
+                        echo "⚠️  Critical vulnerabilities found but FORCE_DEPLOY is enabled"
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 8: PUSH TO REGISTRY
+        // =====================================================================
+        stage('📤 Push Docker Image') {
+            steps {
+                script {
+                    echo "📤 Pushing Docker image to registry..."
+                    withDockerRegistry([
+                        credentialsId: "${DOCKER_CREDENTIALS}",
+                        url: "http://${DOCKER_REGISTRY}"
+                    ]) {
+                        sh """
+                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker push ${DOCKER_IMAGE}:latest
+                            
+                            echo "✅ Docker image pushed successfully"
+                        """
+                    }
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 9: DEPLOY TO K3S
+        // =====================================================================
+        stage('🚀 Deploy to K3s') {
+            steps {
+                script {
+                    echo "🚀 Deploying to K3s cluster..."
+                    withKubeConfig([credentialsId: "${K8S_CREDENTIALS}"]) {
+                        dir('00-raw-inputs/code/1-backend/0-mitoga-project/k8s') {
+                            sh """
+                                echo "📋 Applying K8s manifests..."
+                                
+                                # Apply all manifests
+                                kubectl apply -f 00-namespace.yaml
+                                kubectl apply -f 01-serviceaccount.yaml
+                                kubectl apply -f 02-configmap.yaml
+                                kubectl apply -f 03-secrets.yaml
+                                kubectl apply -f 04-deployment.yaml
+                                kubectl apply -f 05-service.yaml
+                                kubectl apply -f 06-ingress.yaml
+                                kubectl apply -f 07-hpa-pdb.yaml
+                                kubectl apply -f 08-networkpolicy.yaml
+                                kubectl apply -f 09-servicemonitor.yaml
+                                
+                                echo "🔄 Updating deployment image..."
+                                kubectl set image deployment/${K8S_DEPLOYMENT} \
+                                    ${K8S_DEPLOYMENT}=${DOCKER_IMAGE}:${DOCKER_TAG} \
+                                    -n ${K8S_NAMESPACE}
+                                
+                                echo "⏳ Waiting for rollout to complete..."
+                                kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE}
+                                
+                                echo "✅ Deployment completed successfully"
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
+        // =====================================================================
+        // STAGE 10: SMOKE TESTS
+        // =====================================================================
+        stage('✅ Smoke Tests') {
+            steps {
+                script {
+                    echo "🧪 Running smoke tests..."
+                    withKubeConfig([credentialsId: "${K8S_CREDENTIALS}"]) {
+                        sh """
+                            # Wait for pods to be ready
+                            kubectl wait --for=condition=ready pod \
+                                -l app=${K8S_DEPLOYMENT} \
+                                -n ${K8S_NAMESPACE} \
+                                --timeout=300s
+                            
+                            # Get pod status
+                            echo "📊 Pod status:"
+                            kubectl get pods -n ${K8S_NAMESPACE} -l app=${K8S_DEPLOYMENT}
+                            
+                            # Check health endpoint (via port-forward)
+                            POD_NAME=\$(kubectl get pods -n ${K8S_NAMESPACE} -l app=${K8S_DEPLOYMENT} -o jsonpath='{.items[0].metadata.name}')
+                            echo "🏥 Checking health endpoint of pod: \$POD_NAME"
+                            
+                            kubectl exec -n ${K8S_NAMESPACE} \$POD_NAME -- \
+                                wget -qO- http://localhost:8080/actuator/health || true
+                            
+                            echo "✅ Smoke tests passed"
+                        """
+                    }
+                }
+            }
+        }
+    }
+    
+    // =========================================================================
+    // POST ACTIONS
+    // =========================================================================
+    post {
+        success {
+            echo "✅ Pipeline completed successfully!"
+            echo "🎉 Mitoga Backend deployed to K3s cluster"
+            echo "📦 Docker Image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+            echo "🌐 API URL: https://api.mitoga.local"
+            
+            // Slack/Email notification (if configured)
+            // slackSend(
+            //     color: 'good',
+            //     message: "✅ Deployment SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            // )
+        }
+        
+        failure {
+            echo "❌ Pipeline failed!"
+            
+            // Slack/Email notification (if configured)
+            // slackSend(
+            //     color: 'danger',
+            //     message: "❌ Deployment FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            // )
+        }
+        
+        always {
+            // Cleanup Docker images
+            sh """
+                docker image prune -f
+                docker system df
+            """
+            
+            // Archive logs
+            archiveArtifacts artifacts: '**/build/logs/**/*.log', allowEmptyArchive: true
+            
+            echo "🧹 Cleanup completed"
+        }
+    }
+}

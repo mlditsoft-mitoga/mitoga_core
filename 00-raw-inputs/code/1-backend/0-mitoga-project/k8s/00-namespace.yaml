@@ -1,0 +1,65 @@
+# ============================================================================
+# NAMESPACE: mi-toga
+# Purpose: Isolated namespace for Mitoga tutoring platform
+# ============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mi-toga
+  labels:
+    name: mi-toga
+    app: mitoga-platform
+    env: production
+    managed-by: jenkins
+    team: mitoga-dev
+    
+---
+# ============================================================================
+# RESOURCE QUOTA: Límites de recursos para el namespace
+# ============================================================================
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mitoga-quota
+  namespace: mi-toga
+spec:
+  hard:
+    requests.cpu: "4"           # 4 cores de CPU solicitados
+    requests.memory: "8Gi"      # 8 GB de RAM solicitados
+    limits.cpu: "8"             # 8 cores máximo
+    limits.memory: "16Gi"       # 16 GB máximo
+    pods: "20"                  # Máximo 20 pods
+    services: "10"              # Máximo 10 services
+    persistentvolumeclaims: "5" # Máximo 5 PVCs
+    
+---
+# ============================================================================
+# LIMIT RANGE: Límites por defecto para pods/containers
+# ============================================================================
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mitoga-limitrange
+  namespace: mi-toga
+spec:
+  limits:
+  # Límites para containers
+  - type: Container
+    default:                # Límites por defecto
+      cpu: "1"
+      memory: "1Gi"
+    defaultRequest:         # Requests por defecto
+      cpu: "200m"
+      memory: "512Mi"
+    max:                    # Máximo permitido
+      cpu: "2"
+      memory: "2Gi"
+    min:                    # Mínimo requerido
+      cpu: "50m"
+      memory: "128Mi"
+      
+  # Límites para pods
+  - type: Pod
+    max:
+      cpu: "4"
+      memory: "4Gi"

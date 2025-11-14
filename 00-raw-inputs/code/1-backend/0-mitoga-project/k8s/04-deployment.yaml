@@ -1,0 +1,255 @@
+# ============================================================================
+# DEPLOYMENT: mitoga-backend
+# Purpose: Deployment principal de la aplicación Spring Boot
+# Architecture: Hexagonal (Ports & Adapters) + DDD
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mitoga-backend
+  namespace: mi-toga
+  labels:
+    app: mitoga-backend
+    version: v1.0.0
+    component: api
+    tier: backend
+spec:
+  replicas: 2  # Mínimo 2 para alta disponibilidad
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # 1 pod adicional durante el update
+      maxUnavailable: 0  # 0 pods unavailable (zero-downtime)
+  selector:
+    matchLabels:
+      app: mitoga-backend
+  template:
+    metadata:
+      labels:
+        app: mitoga-backend
+        version: v1.0.0
+        component: api
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: mitoga-deployer
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532  # Usuario nonroot de distroless
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+          
+      # Init container para verificar PostgreSQL
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.36
+        command: 
+          - sh
+          - -c
+          - |
+            until nc -z postgres-external.databases.svc.cluster.local 5432; do
+              echo "Waiting for PostgreSQL..."
+              sleep 3
+            done
+            echo "PostgreSQL is ready!"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop: ["ALL"]
+            
+      containers:
+      - name: mitoga-backend
+        image: mitoga-backend:latest  # Se sobrescribe en Jenkins
+        imagePullPolicy: Always
+        
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: actuator
+          containerPort: 8080
+          protocol: TCP
+          
+        env:
+        # Variables desde ConfigMap
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: SPRING_CONFIG_LOCATION
+          value: "file:/config/application.yml"
+          
+        # Variables desde Secrets - Database
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-db-credentials
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-db-credentials
+              key: DB_PASSWORD
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-db-credentials
+              key: DATABASE_URL
+              
+        # Variables desde Secrets - Redis
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-redis-credentials
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-redis-credentials
+              key: REDIS_PORT
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-redis-credentials
+              key: REDIS_PASSWORD
+              
+        # Variables desde Secrets - Mail
+        - name: MAIL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-mail-credentials
+              key: MAIL_HOST
+        - name: MAIL_PORT
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-mail-credentials
+              key: MAIL_PORT
+        - name: MAIL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-mail-credentials
+              key: MAIL_USERNAME
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-mail-credentials
+              key: MAIL_PASSWORD
+              
+        # Variables desde Secrets - Vault
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-vault-token
+              key: VAULT_TOKEN
+              
+        # Variables desde Secrets - JWT
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: mitoga-jwt-keys
+              key: JWT_SECRET
+              
+        # JVM Options optimizadas para contenedores
+        - name: JAVA_OPTS
+          value: >-
+            -XX:+UseContainerSupport
+            -XX:MaxRAMPercentage=75.0
+            -XX:InitialRAMPercentage=50.0
+            -XX:+UseG1GC
+            -XX:MaxGCPauseMillis=200
+            -XX:+UseStringDeduplication
+            -XX:+ExitOnOutOfMemoryError
+            -Djava.security.egd=file:/dev/./urandom
+            
+        resources:
+          requests:
+            cpu: 500m      # 0.5 CPU cores
+            memory: 1Gi    # 1 GB RAM
+          limits:
+            cpu: 2000m     # 2 CPU cores max
+            memory: 2Gi    # 2 GB RAM max
+            
+        # Liveness probe - reinicia si falla
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 120  # 2 minutos para startup
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          
+        # Readiness probe - quita del balanceo si falla
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+          
+        # Startup probe - da más tiempo al inicio
+        startupProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 12  # 120 segundos total
+          
+        volumeMounts:
+        - name: app-config
+          mountPath: /config
+          readOnly: true
+        - name: logs
+          mountPath: /logs
+          
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop: ["ALL"]
+            
+      volumes:
+      - name: app-config
+        configMap:
+          name: mitoga-app-config
+      - name: logs
+        emptyDir: {}
+        
+      # Tolerations para scheduling
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+        
+      # Affinity para distribuir pods en diferentes nodos (si hay múltiples)
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: mitoga-backend
+              topologyKey: kubernetes.io/hostname

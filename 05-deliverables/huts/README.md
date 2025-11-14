@@ -2,7 +2,7 @@
 
 **Proyecto:** MI-TOGA - Plataforma de Tutorías Virtuales  
 **Cliente:** ZENAPSES S.A.S  
-**Technical Architect:** Technical User Stories Specialist - CEIBA v1.2  
+**Technical Architect:** Technical User Stories Specialist - ZNS v2.0  
 **Versión:** 1.0.0  
 **Última actualización:** 2025-11-08
 
@@ -377,7 +377,7 @@ Historias técnicas de testing:
 ## 📞 Contacto
 
 **Tech Lead:** [Por asignar]  
-**Architects:** CEIBA v1.2 - Technical User Stories Specialist  
+**Architects:** ZNS v2.0 - Technical User Stories Specialist  
 **Repositorio:** [GitHub/GitLab URL]
 
 ---

@@ -454,5 +454,5 @@ Si una HU **NO pasa** el checklist:
 ---
 
 **Versión del Checklist:** 1.0.0  
-**Mantenido por:** Método CEIBA - User Stories Agent  
+**Mantenido por:** Método ZNS - User Stories Agent  
 **Última revisión:** 2025-11-08

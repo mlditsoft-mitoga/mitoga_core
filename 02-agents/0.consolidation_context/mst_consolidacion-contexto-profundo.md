@@ -1,7 +1,7 @@
 # 🎯 Prompt Maestro: Consolidación de Contexto Profundo
 
 ---
-**metodo**: CEIBA v1.2  
+**metodo**: ZNS v2.0  
 **prompt_version**: 2.0.0  
 **last_updated**: 2025-11-08  
 **agente**: Consolidación de Contexto con Análisis de Código  
@@ -24,7 +24,7 @@
 **changelog**:
 - v2.0.0: Análisis profundo de código, mapeo de módulos, inventario de componentes
 - v1.0.1: Actualización de rutas a estructura en inglés
-- v1.0.0: Versión inicial CEIBA v1.2
+- v1.0.0: Versión inicial ZNS v2.0
 
 ---
 
@@ -896,4 +896,4 @@ Al finalizar, indícame:
 
 **Versión**: 2.0.0  
 **Última actualización**: 2025-11-08  
-**Autor**: Equipo ZES-METHOD / CEIBA v1.2
+**Autor**: Equipo ZES-METHOD / ZNS v2.0

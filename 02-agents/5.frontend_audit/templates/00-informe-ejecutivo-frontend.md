@@ -223,5 +223,5 @@ Senior Frontend Auditor
 ---
 
 **Versión**: 1.0  
-**Método**: CEIBA Frontend Audit Framework  
+**Método**: ZNS Frontend Audit Framework  
 **Fecha de Emisión**: [DD/MM/YYYY]

@@ -1,0 +1,241 @@
+# ZNS-METHOD Production Deployment
+# Archivo: docker-compose-zns.yml
+
+version: '3.8'
+
+networks:
+  zns-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  models_cache:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+services:
+  # PostgreSQL - Base de datos principal
+  zns-postgres:
+    image: postgres:15-alpine
+    container_name: zns-postgres
+    environment:
+      POSTGRES_DB: zns_method
+      POSTGRES_USER: zns_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zns_secure_2025}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./configs/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - zns-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zns_admin -d zns_method"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Cache y sesiones
+  zns-redis:
+    image: redis:7-alpine
+    container_name: zns-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-zns_cache_2025}
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - zns-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Text Generation WebUI - Motor LLM
+  zns-textgen:
+    image: atinoda/text-generation-webui:latest-cuda
+    container_name: zns-textgen
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - models_cache:/app/models
+      - ./configs/textgen:/app/presets
+    ports:
+      - "127.0.0.1:7860:7860"
+      - "127.0.0.1:5000:5000"
+    networks:
+      - zns-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: >
+      python server.py
+      --listen --listen-port 7860
+      --api --api-port 5000
+      --model-dir /app/models
+      --auto-devices
+      --gpu-memory 0.8
+
+  # FastAPI Gateway - API ZNS personalizada
+  zns-gateway:
+    build: 
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: zns-gateway
+    environment:
+      - DATABASE_URL=postgresql://zns_admin:${POSTGRES_PASSWORD:-zns_secure_2025}@zns-postgres:5432/zns_method
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-zns_cache_2025}@zns-redis:6379/0
+      - TEXTGEN_URL=http://zns-textgen:5000/api/v1
+      - SECRET_KEY=${SECRET_KEY:-zns_secret_key_change_in_production}
+    volumes:
+      - /opt/zns-method/source/02-agents:/app/agents:ro
+      - /opt/zns-method/source/.github/chatmodes:/app/chatmodes:ro
+      - ./logs/gateway:/app/logs
+    ports:
+      - "8080:8080"
+    networks:
+      - zns-network
+    depends_on:
+      - zns-postgres
+      - zns-redis
+      - zns-textgen
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx - Reverse proxy y SSL
+  zns-nginx:
+    image: nginx:alpine
+    container_name: zns-nginx
+    volumes:
+      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/sites:/etc/nginx/conf.d:ro
+      - /opt/zns-method/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - zns-network
+    depends_on:
+      - zns-gateway
+    restart: unless-stopped
+
+  # Prometheus - Métricas
+  zns-prometheus:
+    image: prom/prometheus:latest
+    container_name: zns-prometheus
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - zns-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # Grafana - Dashboards
+  zns-grafana:
+    image: grafana/grafana:latest
+    container_name: zns-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-zns_grafana_2025}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./configs/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - zns-network
+    restart: unless-stopped
+    depends_on:
+      - zns-prometheus
+
+  # Celery Worker - Procesamiento asíncrono
+  zns-worker:
+    build: 
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: zns-worker
+    environment:
+      - DATABASE_URL=postgresql://zns_admin:${POSTGRES_PASSWORD:-zns_secure_2025}@zns-postgres:5432/zns_method
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-zns_cache_2025}@zns-redis:6379/1
+      - TEXTGEN_URL=http://zns-textgen:5000/api/v1
+    volumes:
+      - /opt/zns-method/source/02-agents:/app/agents:ro
+      - ./logs/worker:/app/logs
+    networks:
+      - zns-network
+    depends_on:
+      - zns-postgres
+      - zns-redis
+      - zns-textgen
+    restart: unless-stopped
+    command: celery -A zns_gateway.celery worker --loglevel=info --concurrency=4
+
+  # Celery Beat - Scheduler
+  zns-scheduler:
+    build: 
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: zns-scheduler
+    environment:
+      - DATABASE_URL=postgresql://zns_admin:${POSTGRES_PASSWORD:-zns_secure_2025}@zns-postgres:5432/zns_method
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-zns_cache_2025}@zns-redis:6379/1
+    volumes:
+      - ./logs/scheduler:/app/logs
+    networks:
+      - zns-network
+    depends_on:
+      - zns-postgres
+      - zns-redis
+    restart: unless-stopped
+    command: celery -A zns_gateway.celery beat --loglevel=info
+
+  # Watchtower - Auto-updates
+  zns-watchtower:
+    image: containrrr/watchtower
+    container_name: zns-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_SCHEDULE=0 0 2 * * *  # 2 AM daily
+      - WATCHTOWER_INCLUDE_STOPPED=true
+    restart: unless-stopped

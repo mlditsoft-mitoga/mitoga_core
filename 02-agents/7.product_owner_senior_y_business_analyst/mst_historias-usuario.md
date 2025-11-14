@@ -1,5 +1,5 @@
 ---
-metodo: ceiba
+metodo: ZNS
 version: "1.2"
 prompt_version: "1.0.0"
 last_updated: "2025-11-08"
@@ -839,5 +839,5 @@ graph TD
 
 **Versión del Prompt:** 1.0.0  
 **Última actualización:** 2025-11-08  
-**Autor:** Método CEIBA - User Stories Agent  
+**Autor:** Método ZNS - User Stories Agent  
 **Licencia:** Uso interno ZENAPSES S.A.S

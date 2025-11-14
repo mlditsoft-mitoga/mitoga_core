@@ -119,4 +119,4 @@ Herramienta de whiteboard integrada (Excalidraw embed o Tldraw). Ambos participa
 ---
 
 **Última actualización:** 2025-11-08  
-**Autor:** Product Owner Senior - CEIBA v1.2
+**Autor:** Product Owner Senior - ZNS v2.0

@@ -1,12 +1,12 @@
 ---
-metodo: ceiba
+metodo: ZNS
 version: "1.2"
 prompt_version: "1.0.2"
 last_updated: "2025-11-07"
 changelog:
   - "1.0.2: Actualizadas rutas de entrada/salida a estructura en inglés (04-architecture)"
   - "1.0.1: Agregado PlantUML + C4 Model como obligatorio según política de diagramación"
-  - "1.0.0: Versión inicial del método CEIBA v1.2"
+  - "1.0.0: Versión inicial del método ZNS v2.0"
 agente: arquitectura-soluciones
 fase: 2
 rol: Solutions Architect Senior y Cloud Architect
@@ -38,7 +38,7 @@ politicas:
   - "politica-diagramacion.md"
 ---
 
-# Prompt para Análisis y Diseño de Arquitectura y Soluciones Técnicas - Método CEIBA
+# Prompt para Análisis y Diseño de Arquitectura y Soluciones Técnicas - Método ZNS
 
 ## Contexto del Rol
 
@@ -2619,11 +2619,11 @@ Este prompt se complementa con los siguientes documentos en esta carpeta:
 
 ---
 
-*Documento generado siguiendo el Método CEIBA para análisis y diseño de arquitectura de software*
+*Documento generado siguiendo el Método ZNS para análisis y diseño de arquitectura de software*
 
 **Versión: 1.2 | Fecha: 2025-11-07**
 
-**Autor:** Método CEIBA - Arquitectura de Software Senior
+**Autor:** Método ZNS - Arquitectura de Software Senior
 
 **Cobertura del Diseño:**
 - ✅ Análisis de requisitos funcionales y no funcionales

@@ -719,4 +719,4 @@ lecciones aprendidas de proyectos anteriores, etc.]
 
 **Versión del Documento:** 1.0  
 **Última Actualización:** {{ FECHA }}  
-**Método:** CEIBA - Consolidación, Estructuración, Inteligencia, Best Practices, Arquitectura
+**Método:** ZNS - Consolidación, Estructuración, Inteligencia, Best Practices, Arquitectura

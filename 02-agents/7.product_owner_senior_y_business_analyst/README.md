@@ -1,7 +1,7 @@
 # Agente de Historias de Usuario (User Stories)
 
 **Versión:** 1.0.0  
-**Método:** CEIBA v1.2  
+**Método:** ZNS v2.0  
 **Fase:** 1.5 (Post-Consolidación, Pre-Desarrollo)  
 **Última actualización:** 2025-11-08
 
@@ -436,7 +436,7 @@ Este agente **alimenta a:**
 
 ## 📞 Soporte
 
-**Mantenido por:** Método CEIBA - ZENAPSES S.A.S  
+**Mantenido por:** Método ZNS - ZENAPSES S.A.S  
 **Versión:** 1.0.0  
 **Última actualización:** 2025-11-08  
 **Licencia:** Uso interno

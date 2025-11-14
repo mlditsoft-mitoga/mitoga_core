@@ -365,5 +365,5 @@ El frontend tiene componentes excepcionalmente complejos, especialmente en los f
 
 ---
 
-**Documento:** CEIBA v1.2 - Inventario Técnico del Frontend  
+**Documento:** ZNS v2.0 - Inventario Técnico del Frontend  
 **Conclusión:** Stack moderno (Next.js 16, React 19, TypeScript 5, Tailwind 4) con componentes UI excepcionalmente complejos y pulidos en registro (estudiante 2087 LOC, tutor 714 LOC). Sin embargo, persisten gaps críticos en testing, backend, seguridad y optimización. **Priorizar:** TypeScript strict mode, testing (Jest + RTL), y backend real antes de lanzar MVP.
