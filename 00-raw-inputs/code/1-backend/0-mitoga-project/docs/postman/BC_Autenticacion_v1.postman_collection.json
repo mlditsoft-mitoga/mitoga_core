@@ -1,0 +1,322 @@
+{
+  "info": {
+    "name": "BC Autenticación - MI-TOGA",
+    "description": "Bounded Context de Autenticación: Registro, Login, Verificación de Email, Gestión de Tokens JWT",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuarioEmail",
+      "value": "estudiante1@mitoga.com",
+      "type": "string"
+    },
+    {
+      "key": "usuarioPassword",
+      "value": "Mitoga2025!",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registro y Verificación",
+      "item": [
+        {
+          "name": "1.1 Registro Usuario Estudiante",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.email) {",
+                  "        pm.collectionVariables.set(\"usuarioEmail\", jsonData.data.email);",
+                  "        console.log(\"Email guardado: \" + jsonData.data.email);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"password\": \"{{usuarioPassword}}\",\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Pérez\",\n  \"rol\": \"ESTUDIANTE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "registro"]
+            },
+            "description": "Registra un nuevo usuario estudiante. Envía código de verificación por email."
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Registro Usuario Tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tutor1@mitoga.com\",\n  \"password\": \"Mitoga2025!\",\n  \"nombre\": \"María\",\n  \"apellido\": \"García\",\n  \"rol\": \"TUTOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "registro"]
+            },
+            "description": "Registra un nuevo usuario tutor"
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Verificar Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"token\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/verificar-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "verificar-email"]
+            },
+            "description": "Verifica el email con el código de 6 dígitos recibido"
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Reenviar Código Verificación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/reenviar-codigo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "reenviar-codigo"]
+            },
+            "description": "Reenvía el código de verificación si expiró o no llegó"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Autenticación",
+      "item": [
+        {
+          "name": "2.1 Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+                  "        console.log(\"✅ Tokens guardados exitosamente\");",
+                  "        console.log(\"Access Token expira en: \" + jsonData.data.expiresIn + \" segundos\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Postman Desktop/Chrome 120"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"password\": \"{{usuarioPassword}}\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"userAgent\": \"Postman Desktop/Chrome 120\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Inicia sesión y obtiene tokens JWT. Guarda automáticamente accessToken y refreshToken."
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+                  "        console.log(\"✅ Tokens renovados exitosamente\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"userAgent\": \"Postman Desktop/Chrome 120\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh-token"]
+            },
+            "description": "Renueva el access token usando el refresh token (válido por 30 días)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Testing de Roles",
+      "item": [
+        {
+          "name": "3.1 Registro Admin (requiere permisos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@mitoga.com\",\n  \"password\": \"Admin2025!\",\n  \"nombre\": \"Admin\",\n  \"apellido\": \"Sistema\",\n  \"rol\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registro",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "registro"]
+            },
+            "description": "Registro de usuario con rol ADMIN"
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Login como Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
+                  "        console.log(\"✅ Login Admin exitoso\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@mitoga.com\",\n  \"password\": \"Admin2025!\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"userAgent\": \"Postman Desktop/Chrome 120\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login con usuario Admin"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  }
+}

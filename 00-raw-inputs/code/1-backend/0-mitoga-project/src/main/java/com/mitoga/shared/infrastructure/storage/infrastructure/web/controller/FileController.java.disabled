@@ -1,0 +1,194 @@
+package com.mitoga.shared.infrastructure.storage.infrastructure.web.controller;
+
+import com.mitoga.shared.infrastructure.storage.application.command.UploadFileCommand;
+import com.mitoga.shared.infrastructure.storage.application.usecase.FileManagementUseCase;
+import com.mitoga.shared.infrastructure.storage.domain.entity.Archivo;
+import com.mitoga.shared.infrastructure.storage.domain.valueobject.TipoArchivo;
+import com.mitoga.shared.infrastructure.storage.infrastructure.web.dto.ArchivoResponseDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Controlador REST para gestión de archivos - ARQUITECTURA HEXAGONAL
+ * APIs para subida, descarga y gestión de archivos
+ * Autor: Backend Java Developer Senior - ZNS-METHOD
+ * Fecha: 2025-11-14
+ * 
+ * ARQUITECTURA HEXAGONAL - INFRASTRUCTURE LAYER - WEB CONTROLLER
+ * - Adaptador web que maneja requests HTTP para el módulo Archivos
+ * - Usa casos de uso del Application Layer (puertos)
+ * - Transforma entidades de dominio a DTOs web
+ */
+@RestController
+@RequestMapping("/api/v1/archivos")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Gestión de Archivos", description = "APIs para subida y gestión de archivos en S3")
+public class FileController {
+
+    private final FileManagementUseCase fileManagementUseCase;
+
+    /**
+     * Subir archivo general
+     */
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir archivo", description = "Sube un archivo al sistema de almacenamiento y guarda metadata en BD")
+    public ResponseEntity<ArchivoResponseDTO> uploadFile(
+            @Parameter(description = "Archivo a subir") @RequestParam("file") MultipartFile file,
+            @Parameter(description = "Tipo de archivo") @RequestParam TipoArchivo tipoArchivo,
+            @Parameter(description = "Descripción del archivo") @RequestParam(required = false) String descripcion,
+            @Parameter(description = "ID de entidad relacionada") @RequestParam(required = false) UUID entityId) {
+
+        log.info("Subiendo archivo: {} de tipo: {}", file.getOriginalFilename(), tipoArchivo);
+
+        try {
+            UploadFileCommand command = UploadFileCommand.builder()
+                    .file(file)
+                    .tipoArchivo(tipoArchivo)
+                    .descripcion(descripcion)
+                    .entityId(entityId)
+                    .build();
+
+            Archivo archivo = fileManagementUseCase.uploadFile(command);
+            ArchivoResponseDTO response = mapToDTO(archivo);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (Exception e) {
+            log.error("Error al subir archivo: {}", file.getOriginalFilename(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Obtener información de archivo
+     */
+    @GetMapping("/{archivoId}")
+    @Operation(summary = "Obtener información de archivo", description = "Obtiene la información completa de un archivo por ID")
+    public ResponseEntity<ArchivoResponseDTO> getFile(
+            @Parameter(description = "ID del archivo") @PathVariable UUID archivoId) {
+
+        log.info("Obteniendo información del archivo: {}", archivoId);
+
+        try {
+            Archivo archivo = fileManagementUseCase.getFileById(archivoId);
+            ArchivoResponseDTO response = mapToDTO(archivo);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error al obtener archivo: {}", archivoId, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Generar URL temporal para descarga
+     */
+    @PostMapping("/{archivoId}/url-temporal")
+    @Operation(summary = "Generar URL temporal", description = "Genera una URL temporal para acceder al archivo")
+    public ResponseEntity<Map<String, String>> generatePresignedUrl(
+            @Parameter(description = "ID del archivo") @PathVariable UUID archivoId,
+            @Parameter(description = "Minutos de validez de la URL") @RequestParam(defaultValue = "15") int expirationMinutes) {
+
+        log.info("Generando URL temporal para archivo: {} válida por {} minutos", archivoId, expirationMinutes);
+
+        try {
+            String presignedUrl = fileManagementUseCase.generatePresignedUrl(archivoId, expirationMinutes);
+
+            Map<String, String> response = Map.of(
+                    "url", presignedUrl,
+                    "expirationMinutes", String.valueOf(expirationMinutes),
+                    "archivoId", archivoId.toString());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error al generar URL temporal para archivo: {}", archivoId, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Eliminar archivo
+     */
+    @DeleteMapping("/{archivoId}")
+    @Operation(summary = "Eliminar archivo", description = "Marca el archivo como eliminado (soft delete)")
+    public ResponseEntity<Map<String, String>> deleteFile(
+            @Parameter(description = "ID del archivo") @PathVariable UUID archivoId) {
+
+        log.info("Eliminando archivo: {}", archivoId);
+
+        try {
+            fileManagementUseCase.deleteFile(archivoId);
+
+            Map<String, String> response = Map.of(
+                    "message", "Archivo eliminado exitosamente",
+                    "archivoId", archivoId.toString());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error al eliminar archivo: {}", archivoId, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Obtener archivos de una entidad
+     */
+    @GetMapping("/entity/{entityId}")
+    @Operation(summary = "Obtener archivos de entidad", description = "Obtiene todos los archivos relacionados con una entidad")
+    public ResponseEntity<Map<String, Object>> getEntityFiles(
+            @Parameter(description = "ID de la entidad") @PathVariable UUID entityId) {
+
+        log.info("Obteniendo archivos de entidad: {}", entityId);
+
+        try {
+            var archivos = fileManagementUseCase.getEntityFiles(entityId);
+            var archivosDTO = archivos.stream()
+                    .map(this::mapToDTO)
+                    .toList();
+
+            Map<String, Object> response = Map.of(
+                    "entityId", entityId.toString(),
+                    "totalArchivos", archivosDTO.size(),
+                    "archivos", archivosDTO);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error al obtener archivos de entidad: {}", entityId, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Mapper de entidad a DTO
+     */
+    private ArchivoResponseDTO mapToDTO(Archivo archivo) {
+        return ArchivoResponseDTO.builder()
+                .archivoId(archivo.getId())
+                .tipoArchivo(archivo.getTipoArchivo())
+                .nombreOriginal(archivo.getNombreOriginal())
+                .storageUrl(archivo.getStorageUrl())
+                .contentType(archivo.getContentType())
+                .tamanoBytes(archivo.getTamanoBytes())
+                .proveedorStorage(archivo.getProveedorStorage().name())
+                .esPublico(archivo.getEsPublico())
+                .urlTemporal(archivo.getUrlTemporal())
+                .fechaCreacion(archivo.getCreationDate())
+                .fechaActualizacion(archivo.getUpdatedAt())
+                .build();
+    }
+}

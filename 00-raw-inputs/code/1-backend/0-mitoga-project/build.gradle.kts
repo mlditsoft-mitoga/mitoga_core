@@ -35,7 +35,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     
-    // Redis para cache y rate limiting
+    // AWS SDK v2 para S3
+    implementation("software.amazon.awssdk:s3:2.28.9")
+    implementation("software.amazon.awssdk:core:2.28.9")
+    implementation("software.amazon.awssdk:auth:2.28.9")
+    implementation("software.amazon.awssdk:regions:2.28.9")
+    
+    // Redis para cache, rate limiting y tokens
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
     

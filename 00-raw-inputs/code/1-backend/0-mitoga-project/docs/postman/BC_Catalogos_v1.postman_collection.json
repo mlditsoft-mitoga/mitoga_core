@@ -1,0 +1,451 @@
+{
+  "info": {
+    "name": "BC Catálogos - MI-TOGA",
+    "description": "Bounded Context de Catálogos: Gestión de catálogos jerárquicos recursivos (Materias, Niveles Académicos, Modalidades, etc.)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "catalogoId",
+      "value": "00000000-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "tipoCatalogo",
+      "value": "MATERIA",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Consultas (Públicas)",
+      "item": [
+        {
+          "name": "1.1 Obtener Árbol Completo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"{{tipoCatalogo}}\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-arbol"]
+            },
+            "description": "Obtiene árbol completo jerárquico. Tipos válidos: MATERIA, NIVEL_ACADEMICO, MODALIDAD, ESPECIALIDAD, IDIOMA, DISPONIBILIDAD, ESTADO_SESION, METODO_PAGO"
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Buscar por Nombre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"{{tipoCatalogo}}\",\n  \"nombre\": \"Matemáticas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar"]
+            },
+            "description": "Búsqueda LIKE case-insensitive por nombre. Útil para autocomplete."
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Obtener por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set(\"catalogoId\", jsonData.data.id);",
+                  "        console.log(\"Catálogo ID guardado: \" + jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogoId\": \"{{catalogoId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/obtener-por-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "obtener-por-id"]
+            },
+            "description": "Obtiene catálogo específico por UUID"
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Obtener Ancestros (Breadcrumb)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"incluirPropio\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-ancestros",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-ancestros"]
+            },
+            "description": "Obtiene ruta completa desde raíz hasta el nodo. Útil para breadcrumbs de navegación."
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Obtener Descendientes (Subárbol)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"incluirPropio\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-descendientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-descendientes"]
+            },
+            "description": "Obtiene todos los hijos, nietos, etc. Útil para expandir subárboles."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Gestión (Requiere Auth)",
+      "item": [
+        {
+          "name": "2.1 Crear Catálogo Raíz",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set(\"catalogoId\", jsonData.data.id);",
+                  "        console.log(\"✅ Catálogo creado con ID: \" + jsonData.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"MATERIA\",\n  \"padreId\": null,\n  \"codigo\": \"MAT-001\",\n  \"nombre\": \"Matemáticas\",\n  \"nombreEn\": \"Mathematics\",\n  \"descripcion\": \"Ciencias exactas y lógica matemática\",\n  \"descripcionEn\": \"Exact sciences and mathematical logic\",\n  \"orden\": 1,\n  \"icono\": \"calculate\",\n  \"color\": \"#2196F3\",\n  \"activo\": true,\n  \"seleccionable\": true,\n  \"metadatos\": {\n    \"nivel\": \"universitario\",\n    \"creditos\": 4\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/crear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "crear"]
+            },
+            "description": "Crea catálogo raíz (sin padre). Requiere Bearer Token."
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Crear Catálogo Hijo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"MATERIA\",\n  \"padreId\": \"{{catalogoId}}\",\n  \"codigo\": \"MAT-CALC-001\",\n  \"nombre\": \"Cálculo Diferencial\",\n  \"nombreEn\": \"Differential Calculus\",\n  \"descripcion\": \"Límites, derivadas y aplicaciones\",\n  \"orden\": 1,\n  \"activo\": true,\n  \"seleccionable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/crear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "crear"]
+            },
+            "description": "Crea catálogo hijo bajo un padre existente"
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Actualizar Catálogo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"padreId\": null,\n  \"codigo\": \"MAT-001\",\n  \"nombre\": \"Matemáticas Avanzadas\",\n  \"nombreEn\": \"Advanced Mathematics\",\n  \"descripcion\": \"Matemáticas de nivel superior\",\n  \"orden\": 1,\n  \"activo\": true,\n  \"seleccionable\": true,\n  \"metadatos\": {\n    \"nivel\": \"posgrado\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/actualizar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "actualizar"]
+            },
+            "description": "Actualiza catálogo existente (update parcial)"
+          },
+          "response": []
+        },
+        {
+          "name": "2.4 Eliminar Catálogo (sin hijos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"eliminarDescendientes\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/eliminar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "eliminar"]
+            },
+            "description": "Elimina catálogo (soft delete). Si tiene hijos, falla a menos que eliminarDescendientes=true"
+          },
+          "response": []
+        },
+        {
+          "name": "2.5 Eliminar Catálogo con Descendientes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogoId\": \"{{catalogoId}}\",\n  \"eliminarDescendientes\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/eliminar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "eliminar"]
+            },
+            "description": "Elimina catálogo y todos sus descendientes en cascada"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Testing por Tipo",
+      "item": [
+        {
+          "name": "3.1 Árbol de Materias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"MATERIA\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-arbol"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Árbol de Niveles Académicos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"NIVEL_ACADEMICO\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-arbol"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Árbol de Modalidades",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"MODALIDAD\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-arbol"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.4 Árbol de Especialidades",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ESPECIALIDAD\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-arbol"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.5 Árbol de Idiomas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"IDIOMA\",\n  \"soloActivos\": true,\n  \"soloSeleccionables\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/buscar-arbol",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "catalogos", "buscar-arbol"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  }
+}

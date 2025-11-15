@@ -6,7 +6,7 @@
 ![Redis](https://img.shields.io/badge/Redis-7-red?logo=redis)
 ![Gradle](https://img.shields.io/badge/Gradle-8.10-02303A?logo=gradle)
 
-Backend del sistema MI-TOGA desarrollado con **Arquitectura Hexagonal (Ports & Adapters)** y **Domain-Driven Design (DDD)**.
+Backend del sistema MI-TOGA desarrollado con **Arquitectura Hexagonal (Ports & Adapters)**,**Monolito Modular** y **Domain-Driven Design (DDD)**.
 
 ---
 
@@ -99,25 +99,66 @@ Backend del sistema MI-TOGA desarrollado con **Arquitectura Hexagonal (Ports & A
 - **ArchUnit 1.3.0** (tests de arquitectura)
 
 ### Utilidades
-- **Lombok 1.18.34** (reducción de boilerplate)
 - **MapStruct 1.5.5** (mapeo Entity↔DTO)
+- ⚠️ **NO LOMBOK** en Domain Layer (rompe encapsulación DDD)
 
 ---
 
 ## 📦 Bounded Contexts
 
-| BC                  | Descripción                                         | Puerto |
-|---------------------|-----------------------------------------------------|--------|
-| **Autenticación**   | Registro, login, JWT, gestión de usuarios          | 8082   |
-| **Marketplace**     | Tutores, categorías, búsqueda                       | 8082   |
-| **Perfiles**        | Información completa de estudiantes y tutores       | 8082   |
-| **Reservas**        | Agendamiento de sesiones, confirmaciones            | 8082   |
-| **Pagos**           | Integración Stripe, procesamiento de pagos          | 8082   |
-| **Videollamadas**   | Integración Agora.io para sesiones en vivo          | 8082   |
-| **Notificaciones**  | Email, push, in-app notifications                   | 8082   |
-| **Admin**           | Panel administrativo, reportes, estadísticas        | 8082   |
+| BC                  | Estado | Descripción                                         | Puerto |
+|---------------------|--------|-----------------------------------------------------|--------|
+| **BC**              | **Estado** | **Funcionalidades**                                 | **Puerto** |
+|---------------------|--------|-----------------------------------------------------|--------|
+| **Autenticación** ✅✅ | 🟢 | COMPLETO: Domain, App, Infrastructure, Web + Security | 8082   |
+| **Marketplace** 🔄   | 🟡 | Tutores, categorías, búsqueda                       | 8082   |
+| **Perfiles** ⏳      | 🟡 | Información completa de estudiantes y tutores       | 8082   |
+| **Reservas** ⏳      | ⚪ | Agendamiento de sesiones, confirmaciones            | 8082   |
+| **Pagos** ⏳         | ⚪ | Integración Stripe, procesamiento de pagos          | 8082   |
+| **Videollamadas** ⏳ | ⚪ | Integración Agora.io para sesiones en vivo          | 8082   |
+| **Notificaciones** ⏳| ⚪ | Email, push, in-app notifications                   | 8082   |
+| **Admin** ⏳         | ⚪ | Panel administrativo, reportes, estadísticas        | 8082   |
+
+**Leyenda:** 🟢 Completo | 🟡 En progreso | ⚪ Pendiente
 
 > **Nota:** Monolito modular en puerto 8082. Cada BC es independiente y podría extraerse como microservicio.
+
+### BC Autenticación - Características Implementadas
+
+✅ **Domain Layer (DDD puro, sin Lombok):**
+- Usuario (Aggregate Root) con factory methods y validaciones
+- Token (Entity) para refresh tokens con device tracking
+- OAuthProvider (Entity) para vinculación con Google, Facebook, Microsoft, GitHub, Apple
+- Repositories (Ports) para persistencia
+- 5 excepciones de dominio específicas
+
+✅ **Application Layer (Hexagonal):**
+- 5 Use Cases (Input Ports): Registro, Login, RefreshToken, VerificarEmail, VincularOAuth
+- 4 Output Ports: PasswordEncoder, JwtToken, Email, OAuthClient
+- 5 Services que orquestan dominio e infraestructura
+- 5 Commands (DTOs inmutables)
+- 3 Response DTOs
+
+✅ **Infrastructure Layer (COMPLETADO):**
+- **Persistence:** 3 JPA Repositories + 3 Adapters (Usuario, Token, OAuthProvider)
+- **Security:** JWT Token Provider (JJWT 0.12.x, HS512, access + refresh tokens)
+- **Security:** BCrypt Password Adapter (strength 12, 4096 iterations)
+- **Email:** Email Adapter con JavaMailSender (@Async, 5 HTML templates)
+- **OAuth:** 5 OAuth Client Adapters (Google, Facebook, Microsoft, GitHub, Apple)
+
+✅ **Web Layer (COMPLETADO):**
+- **REST API:** AutenticacionController con 7 endpoints
+  - POST /api/v1/auth/registro - Registrar usuario
+  - POST /api/v1/auth/login - Login email/password
+  - POST /api/v1/auth/refresh-token - Refrescar access token
+  - POST /api/v1/auth/verificar-email - Verificar código 6 dígitos
+  - POST /api/v1/auth/reenviar-codigo - Reenviar código verificación
+  - POST /api/v1/auth/oauth/{provider}/login - Login con OAuth
+  - POST /api/v1/auth/vincular-oauth - Vincular cuenta OAuth
+- **DTOs:** 5 Request DTOs + 3 Response DTOs con validación Jakarta Validation
+- **Exception Handler:** GlobalExceptionHandler (@RestControllerAdvice) para mapeo de excepciones
+- **Security:** SecurityConfig con JWT Filter, CORS, endpoints públicos/protegidos
+- **Security:** JwtAuthenticationFilter para autenticación basada en Bearer tokens
 
 ---
 
@@ -132,41 +173,107 @@ mitoga-backend/
 │   │   │   │
 │   │   │   ├── shared/                          # Shared Kernel (DDD)
 │   │   │   │   ├── domain/                      # Building blocks DDD
-│   │   │   │   │   ├── Entity.java
-│   │   │   │   │   ├── AggregateRoot.java
-│   │   │   │   │   ├── ValueObject.java
-│   │   │   │   │   ├── DomainEvent.java
-│   │   │   │   │   └── DomainException.java
-│   │   │   │   ├── application/                 # Ports
-│   │   │   │   │   ├── UseCase.java
-│   │   │   │   │   ├── Command.java
-│   │   │   │   │   └── Query.java
+│   │   │   │   │   ├── valueobject/
+│   │   │   │   │   │   ├── BaseEntity.java      # Entidad base con UUID y auditoría
+│   │   │   │   │   │   ├── AggregateRoot.java   # Raíz de agregado
+│   │   │   │   │   │   ├── ValueObject.java     # Value Object inmutable
+│   │   │   │   │   │   └── DomainEvent.java     # Evento de dominio
+│   │   │   │   │   └── exception/
+│   │   │   │   │       └── DomainException.java # Excepción base de dominio
+│   │   │   │   ├── application/                 # Ports compartidos
+│   │   │   │   │   ├── UseCase.java             # Marker interface para Use Cases
+│   │   │   │   │   ├── Command.java             # Marker interface para Commands
+│   │   │   │   │   └── Query.java               # Marker interface para Queries
 │   │   │   │   └── infrastructure/              # Config compartida
 │   │   │   │       └── config/
-│   │   │   │           ├── DatabaseConfig.java
-│   │   │   │           └── OpenApiConfig.java
+│   │   │   │           ├── DatabaseConfig.java  # Configuración multi-schema PostgreSQL
+│   │   │   │           ├── OpenApiConfig.java   # Swagger/OpenAPI documentation
+│   │   │   │           ├── S3Config.java        # AWS S3 client configuration
+│   │   │   │           ├── S3Properties.java    # S3 bucket properties
+│   │   │   │           └── EmailProperties.java # SMTP email configuration
 │   │   │   │
-│   │   │   ├── autenticacion/                   # BC Autenticación
+│   │   │   ├── autenticacion/                   # ✅ BC Autenticación (COMPLETO: Domain + Application)
 │   │   │   │   ├── domain/
-│   │   │   │   │   ├── model/                   # Usuario (Aggregate Root)
-│   │   │   │   │   ├── repository/              # UsuarioRepository (Port)
-│   │   │   │   │   └── service/
+│   │   │   │   │   ├── model/                   # Entidades de dominio (SIN LOMBOK)
+│   │   │   │   │   │   ├── Usuario.java         # Aggregate Root - Registro, login, verificación
+│   │   │   │   │   │   ├── Token.java           # Entity - Refresh tokens con device tracking
+│   │   │   │   │   │   └── OAuthProvider.java   # Entity - OAuth 2.0 providers (Google, Facebook, etc.)
+│   │   │   │   │   ├── repository/              # Ports de persistencia
+│   │   │   │   │   │   ├── UsuarioRepository.java
+│   │   │   │   │   │   ├── TokenRepository.java
+│   │   │   │   │   │   └── OAuthProviderRepository.java
+│   │   │   │   │   └── exception/               # Excepciones de dominio
+│   │   │   │   │       ├── AutenticacionException.java
+│   │   │   │   │       ├── UsuarioYaExisteException.java
+│   │   │   │   │       ├── CredencialesInvalidasException.java
+│   │   │   │   │       ├── CuentaBloqueadaException.java
+│   │   │   │   │       └── TokenInvalidoException.java
 │   │   │   │   ├── application/
-│   │   │   │   │   ├── port/in/                 # Use Cases (Input Ports)
-│   │   │   │   │   ├── port/out/                # Persistence Ports
-│   │   │   │   │   └── usecase/                 # Implementación
-│   │   │   │   └── infrastructure/
-│   │   │   │       └── adapter/
-│   │   │   │           ├── in/web/              # REST Controllers
-│   │   │   │           └── out/persistence/     # JPA Adapters
+│   │   │   │   │   ├── command/                 # DTOs de entrada (Commands)
+│   │   │   │   │   │   ├── RegistrarUsuarioCommand.java
+│   │   │   │   │   │   ├── LoginCommand.java
+│   │   │   │   │   │   ├── RefreshTokenCommand.java
+│   │   │   │   │   │   ├── VerificarEmailCommand.java
+│   │   │   │   │   │   └── VincularOAuthCommand.java
+│   │   │   │   │   ├── port/
+│   │   │   │   │   │   ├── input/               # Use Cases (Input Ports)
+│   │   │   │   │   │   │   ├── RegistrarUsuarioUseCase.java
+│   │   │   │   │   │   │   ├── LoginUseCase.java
+│   │   │   │   │   │   │   ├── RefreshTokenUseCase.java
+│   │   │   │   │   │   │   ├── VerificarEmailUseCase.java
+│   │   │   │   │   │   │   ├── VincularOAuthUseCase.java
+│   │   │   │   │   │   │   └── dto/             # Response DTOs
+│   │   │   │   │   │   │       ├── AutenticacionResponse.java
+│   │   │   │   │   │   │       ├── VerificacionResponse.java
+│   │   │   │   │   │   │       └── VinculacionResponse.java
+│   │   │   │   │   │   └── output/              # Output Ports (infraestructura)
+│   │   │   │   │   │       ├── PasswordEncoderPort.java
+│   │   │   │   │   │       ├── JwtTokenPort.java
+│   │   │   │   │   │       ├── EmailPort.java
+│   │   │   │   │   │       └── OAuthClientPort.java
+│   │   │   │   │   └── service/                 # Implementación de Use Cases
+│   │   │   │   │       ├── RegistrarUsuarioService.java
+│   │   │   │   │       ├── LoginService.java
+│   │   │   │   │       ├── RefreshTokenService.java
+│   │   │   │   │       ├── VerificarEmailService.java
+│   │   │   │   │       └── VincularOAuthService.java
+│   │   │   │   └── infrastructure/              # ⏳ EN CONSTRUCCIÓN (FASE 1.5)
+│   │   │   │       ├── persistence/
+│   │   │   │       │   ├── adapter/             # Implementación de repositories
+│   │   │   │       │   │   ├── UsuarioPersistenceAdapter.java
+│   │   │   │       │   │   ├── TokenPersistenceAdapter.java
+│   │   │   │       │   │   └── OAuthProviderPersistenceAdapter.java
+│   │   │   │       │   └── jpa/
+│   │   │   │       │       ├── UsuarioJpaRepository.java
+│   │   │   │       │       ├── TokenJpaRepository.java
+│   │   │   │       │       └── OAuthProviderJpaRepository.java
+│   │   │   │       ├── security/                # Seguridad y OAuth
+│   │   │   │       │   ├── JwtTokenProvider.java
+│   │   │   │       │   ├── BCryptPasswordAdapter.java
+│   │   │   │       │   ├── SecurityConfig.java
+│   │   │   │       │   └── oauth/
+│   │   │   │       │       ├── GoogleOAuthClient.java
+│   │   │   │       │       ├── FacebookOAuthClient.java
+│   │   │   │       │       ├── MicrosoftOAuthClient.java
+│   │   │   │       │       ├── GitHubOAuthClient.java
+│   │   │   │       │       └── AppleOAuthClient.java
+│   │   │   │       ├── email/
+│   │   │   │       │   └── EmailAdapter.java    # SMTP email sender
+│   │   │   │       └── web/
+│   │   │   │           ├── controller/
+│   │   │   │           │   └── AutenticacionController.java
+│   │   │   │           └── dto/
+│   │   │   │               ├── RegistroRequest.java
+│   │   │   │               ├── LoginRequest.java
+│   │   │   │               └── VerificarEmailRequest.java
 │   │   │   │
-│   │   │   ├── marketplace/                     # BC Marketplace
-│   │   │   ├── perfiles/                        # BC Perfiles
-│   │   │   ├── reservas/                        # BC Reservas
-│   │   │   ├── pagos/                           # BC Pagos
-│   │   │   ├── videollamadas/                   # BC Videollamadas
-│   │   │   ├── notificaciones/                  # BC Notificaciones
-│   │   │   └── admin/                           # BC Admin
+│   │   │   ├── marketplace/                     # 🔄 BC Marketplace (EN PROGRESO)
+│   │   │   ├── perfiles/                        # ⏳ BC Perfiles (PENDIENTE)
+│   │   │   ├── reservas/                        # ⏳ BC Reservas (PENDIENTE)
+│   │   │   ├── pagos/                           # ⏳ BC Pagos (PENDIENTE)
+│   │   │   ├── videollamadas/                   # ⏳ BC Videollamadas (PENDIENTE)
+│   │   │   ├── notificaciones/                  # ⏳ BC Notificaciones (PENDIENTE)
+│   │   │   └── admin/                           # ⏳ BC Admin (PENDIENTE)
 │   │   │
 │   │   └── resources/
 │   │       ├── application.yml                  # Configuración única

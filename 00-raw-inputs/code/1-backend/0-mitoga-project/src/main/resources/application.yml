@@ -20,14 +20,14 @@ spring:
         enabled: true
         backend: mitoga-secrets
         application-name: mitoga_project  # Sobreescribe el default-context
-      fail-fast: true
+      fail-fast: false  # No fallar si Vault no está disponible
   
   datasource:
-    # Valores obtenidos desde HashiCorp Vault en runtime
-    url: ${secret.database.url}
-    username: ${secret.database.username}
-    password: ${secret.database.password}
-    driver-class-name: ${secret.database.driver}
+    # Valores obtenidos desde HashiCorp Vault en runtime (con fallback local)
+    url: ${secret.database.url:jdbc:postgresql://localhost:5432/mitoga_db}
+    username: ${secret.database.username:postgres}
+    password: ${secret.database.password:postgres}
+    driver-class-name: ${secret.database.driver:org.postgresql.Driver}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -58,11 +58,10 @@ spring:
   
   # Configuración de email (valores desde Vault)
   mail:
-    host: ${secret.mail_host}
-    port: ${secret.mail_port}
-    username: ${secret.mail_username}
-    password: ${secret.mail_password}
-    protocol: ${secret.mail_protocol}
+    host: ${secret.smtp.host}
+    port: ${secret.smtp.port}
+    username: ${secret.smtp.username}
+    password: ${secret.smtp.password}
     properties:
       mail:
         smtp:
@@ -70,6 +69,24 @@ spring:
           starttls:
             enable: true
             required: true
+          ssl:
+            trust: "*"
+    default-encoding: UTF-8
+  
+  # File Upload
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      enabled: true
+  
+  # Jackson JSON
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    time-zone: UTC
+    default-property-inclusion: non_null
   
   # Configuración Redis (valores desde Vault)
   data:
@@ -85,15 +102,132 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
-# JWT Configuration (managed by Vault)
+# ========== JWT Configuration (managed by Vault) ==========
 jwt:
-  secret: ${secret.jwt}
-  refresh-secret: ${secret.jwt_refresh_secret}
-  expiration-minutes: ${secret.jwt_expires_in_minutes}
-  refresh-expiration-minutes: ${secret.jwt_expires_in_minutes_refresh}
+  secret: ${secret.jwt.secret}
+  access-token-expiration-minutes: ${secret.jwt.access-expiration-minutes:480} # 8 horas default
+  refresh-token-expiration-days: ${secret.jwt.refresh-expiration-days:30} # 30 días default
+  issuer: zns-method
+  audience: mitoga-app
+
+# ========== OAuth 2.0 Configuration (managed by Vault) ==========
+oauth:
+  google:
+    client-id: ${secret.oauth.google.client-id}
+    client-secret: ${secret.oauth.google.client-secret}
+    redirect-uri: ${secret.oauth.google.redirect-uri:http://localhost:8080/api/v1/auth/oauth/callback/google}
+    authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+    token-uri: https://oauth2.googleapis.com/token
+    user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+    scopes: openid,profile,email
+  
+  facebook:
+    client-id: ${secret.oauth.facebook.client-id}
+    client-secret: ${secret.oauth.facebook.client-secret}
+    redirect-uri: ${secret.oauth.facebook.redirect-uri:http://localhost:8080/api/v1/auth/oauth/callback/facebook}
+    authorization-uri: https://www.facebook.com/v12.0/dialog/oauth
+    token-uri: https://graph.facebook.com/v12.0/oauth/access_token
+    user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
+    scopes: email,public_profile
+  
+  microsoft:
+    client-id: ${secret.oauth.microsoft.client-id}
+    client-secret: ${secret.oauth.microsoft.client-secret}
+    redirect-uri: ${secret.oauth.microsoft.redirect-uri:http://localhost:8080/api/v1/auth/oauth/callback/microsoft}
+    authorization-uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+    token-uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+    user-info-uri: https://graph.microsoft.com/v1.0/me
+    scopes: openid,profile,email,User.Read
+  
+  github:
+    client-id: ${secret.oauth.github.client-id}
+    client-secret: ${secret.oauth.github.client-secret}
+    redirect-uri: ${secret.oauth.github.redirect-uri:http://localhost:8080/api/v1/auth/oauth/callback/github}
+    authorization-uri: https://github.com/login/oauth/authorize
+    token-uri: https://github.com/login/oauth/access_token
+    user-info-uri: https://api.github.com/user
+    scopes: read:user,user:email
+  
+  apple:
+    client-id: ${secret.oauth.apple.client-id}
+    client-secret: ${secret.oauth.apple.client-secret}
+    redirect-uri: ${secret.oauth.apple.redirect-uri:http://localhost:8080/api/v1/auth/oauth/callback/apple}
+    authorization-uri: https://appleid.apple.com/auth/authorize
+    token-uri: https://appleid.apple.com/auth/token
+    user-info-uri: https://appleid.apple.com/auth/userinfo
+    scopes: name,email
+    team-id: ${secret.oauth.apple.team-id}
+    key-id: ${secret.oauth.apple.key-id}
+
+# ========== AWS S3 Configuration (managed by Vault) ==========
+aws:
+  s3:
+    access-key-id: ${secret.aws.s3.access-key-id}
+    secret-access-key: ${secret.aws.s3.secret-access-key}
+    region: ${secret.aws.s3.region:us-east-1}
+    bucket-name: ${secret.aws.s3.bucket-name:zns-method-files}
+    max-file-size: 10485760 # 10MB
+    allowed-image-types: jpg,jpeg,png,webp
+    allowed-document-types: pdf,doc,docx
+    
+    estudiantes:
+      prefix: estudiantes
+      max-size: 5242880 # 5MB
+      allowed-types: jpg,jpeg,png,pdf
+    
+    tutores:
+      prefix: tutores
+      max-size: 10485760 # 10MB
+      allowed-types: jpg,jpeg,png,pdf,doc,docx,mp4
+
+# ========== Email Templates Configuration ==========
+email:
+  from: ${secret.smtp.from:noreply@zns-method.com}
+  from-name: ZNS Method - Mitoga
+  login-url: ${secret.smtp.login-url:https://app.zns-method.com/login}
+  support-email: soporte@zns-method.com
+  
+  templates:
+    verificacion: classpath:templates/email/verificacion.html
+    bienvenida: classpath:templates/email/bienvenida.html
+    password-reset: classpath:templates/email/password-reset.html
+    oauth-vinculado: classpath:templates/email/oauth-vinculado.html
+    cuenta-bloqueada: classpath:templates/email/cuenta-bloqueada.html
+
+# ========== Token Configuration ==========
+token:
+  verification:
+    expiration-minutes: 5
+    max-attempts: 3
+    code-length: 6
+  
+  password-reset:
+    expiration-minutes: 15
+    max-attempts: 3
+
+# ========== CORS Configuration ==========
+cors:
+  allowed-origins: ${secret.cors.allowed-origins:http://localhost:3000,http://localhost:5173}
+  allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+  allowed-headers: "*"
+  exposed-headers: Authorization,Content-Type
+  allow-credentials: true
+  max-age: 3600
+
+# ========== Rate Limiting ==========
+rate-limit:
+  enabled: true
+  requests-per-minute: 60
+  requests-per-hour: 1000
+  
+  endpoints:
+    registro: 5
+    login: 10
+    refresh: 20
+    verificacion: 3
 
 server:
-  port: ${secret.server.port}
+  port: ${secret.server.port:8082}
   error:
     include-message: always
     include-stacktrace: never
@@ -112,6 +246,18 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+      # Configurar componentes como UP/DOWN según disponibilidad
+      group:
+        readiness:
+          include: db  # Solo DB es crítico para readiness
+        liveness:
+          include: ping  # Liveness solo verifica que la app responda
+  # Configurar Redis como opcional (no afecta el estado general)
+  health:
+    redis:
+      enabled: true  # Habilitar health check pero no crítico
+    defaults:
+      enabled: true
   metrics:
     export:
       prometheus:
@@ -137,3 +283,10 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
   show-actuator: true
+
+# JWT Configuration - BC Autenticación
+mitoga:
+  jwt:
+    secret: ${SECRET_JWT_KEY:mi-clave-secreta-super-segura-para-desarrollo-local-2025}
+    access-token-expiration-minutes: 480  # 8 horas
+    refresh-token-expiration-days: 30

@@ -21,9 +21,9 @@ import java.util.List;
  * </p>
  * <ul>
  * <li>Swagger UI: <a href=
- * "http://localhost:8082/api/v1/swagger-ui.html">http://localhost:8082/api/v1/swagger-ui.html</a></li>
+ * "http://localhost:8082/swagger-ui.html">http://localhost:8082/swagger-ui.html</a></li>
  * <li>JSON Docs: <a href=
- * "http://localhost:8082/api/v1/api-docs">http://localhost:8082/api/v1/api-docs</a></li>
+ * "http://localhost:8082/api-docs">http://localhost:8082/api-docs</a></li>
  * </ul>
  * 
  * @author MI-TOGA Development Team
@@ -54,9 +54,9 @@ public class OpenApiConfig {
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8082/api/v1").description("Local Development"),
-                        new Server().url("https://api-dev.mitoga.com/api/v1").description("Development Environment"),
-                        new Server().url("https://api.mitoga.com/api/v1").description("Production Environment")))
+                        new Server().url("http://localhost:8082").description("Local Development"),
+                        new Server().url("https://api-dev.mitoga.com").description("Development Environment"),
+                        new Server().url("https://api.mitoga.com").description("Production Environment")))
                 .components(new Components()
                         .addSecuritySchemes("Bearer JWT", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)

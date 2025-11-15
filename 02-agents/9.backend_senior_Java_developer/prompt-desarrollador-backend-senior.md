@@ -111,6 +111,879 @@
 3. ✅ **Infrastructure depende de Domain y Application** (implementa ports)
 4. ✅ **Flujo de dependencias: INWARD ONLY** (desde afuera hacia el dominio)
 
+---
+
+## 🏢 MONOLITO MODULAR: POLÍTICA DE PACKAGES
+
+### Filosofía del Monolito Modular
+
+**"Cada módulo debe ser diseñado como un microservicio futuro"**
+- ✅ **Acoplamiento bajo:** Módulos se comunican por interfaces bien definidas
+- ✅ **Cohesión alta:** Cada módulo encapsula completamente un Bounded Context
+- ✅ **Independencia de despliegue:** Preparado para extraer como microservicio
+- ✅ **Base de datos por módulo:** Schemas separados, sin foreign keys entre módulos
+- ✅ **Comunicación asíncrona:** Domain Events entre módulos (nunca llamadas directas)
+
+### Estructura de Packages (OBLIGATORIA)
+
+```
+src/main/java/com/mitoga/
+├── shared/                                    # Shared Kernel (Transversal)
+│   ├── domain/
+│   │   ├── entity/BaseEntity.java
+│   │   ├── valueobject/
+│   │   ├── event/DomainEvent.java
+│   │   └── exception/DomainException.java
+│   ├── application/
+│   │   ├── usecase/UseCase.java
+│   │   └── command/Command.java
+│   └── infrastructure/
+│       ├── config/
+│       ├── security/
+│       └── messaging/
+│
+├── autenticacion/                             # BC 1: Autenticación (Módulo Independiente)
+│   ├── domain/
+│   │   ├── entity/
+│   │   │   ├── Usuario.java               # Aggregate Root
+│   │   │   └── Sesion.java
+│   │   ├── valueobject/
+│   │   │   ├── Email.java
+│   │   │   ├── Password.java
+│   │   │   └── UsuarioId.java
+│   │   ├── repository/
+│   │   │   └── UsuarioRepository.java     # Port (Interface)
+│   │   ├── service/
+│   │   │   └── PasswordHashService.java   # Domain Service
+│   │   └── event/
+│   │       ├── UsuarioRegistrado.java     # Domain Event
+│   │       └── SesionIniciada.java
+│   ├── application/
+│   │   ├── usecase/
+│   │   │   ├── RegistrarUsuarioUseCase.java
+│   │   │   ├── IniciarSesionUseCase.java
+│   │   │   └── CerrarSesionUseCase.java
+│   │   ├── command/
+│   │   │   ├── RegistrarUsuarioCommand.java
+│   │   │   └── IniciarSesionCommand.java
+│   │   └── query/
+│   │       └── ObtenerUsuarioPorEmailQuery.java
+│   ├── infrastructure/
+│   │   ├── persistence/
+│   │   │   ├── entity/UsuarioJpaEntity.java
+│   │   │   ├── repository/UsuarioJpaRepository.java
+│   │   │   └── adapter/UsuarioPersistenceAdapter.java  # Port Implementation
+│   │   ├── web/
+│   │   │   └── controller/AutenticacionController.java
+│   │   └── messaging/
+│   │       └── eventhandler/UsuarioEventHandler.java
+│   └── AutenticacionModuleConfiguration.java          # Spring Configuration
+│
+├── marketplace/                               # BC 2: Marketplace (Módulo Independiente)
+│   ├── domain/
+│   │   ├── entity/
+│   │   │   ├── Tutor.java                 # Aggregate Root
+│   │   │   ├── Categoria.java
+│   │   │   └── Valoracion.java
+│   │   ├── valueobject/
+│   │   │   ├── TutorId.java
+│   │   │   ├── Especialidad.java
+│   │   │   ├── Precio.java
+│   │   │   └── Calificacion.java
+│   │   ├── repository/
+│   │   │   ├── TutorRepository.java       # Port (Interface)
+│   │   │   └── CategoriaRepository.java
+│   │   ├── service/
+│   │   │   ├── BusquedaTutorService.java  # Domain Service
+│   │   │   └── CalculadoraPrecioService.java
+│   │   └── event/
+│   │       ├── TutorRegistrado.java       # Domain Event
+│   │       └── ValoracionCreada.java
+│   ├── application/
+│   │   ├── usecase/
+│   │   │   ├── RegistrarTutorUseCase.java
+│   │   │   ├── BuscarTutoresUseCase.java
+│   │   │   └── ValorarTutorUseCase.java
+│   │   └── eventhandler/
+│   │       └── UsuarioRegistradoHandler.java  # Escucha eventos de Autenticación
+│   ├── infrastructure/
+│   │   ├── persistence/
+│   │   │   ├── entity/TutorJpaEntity.java
+│   │   │   └── adapter/TutorPersistenceAdapter.java
+│   │   ├── web/
+│   │   │   └── controller/TutorController.java
+│   │   └── search/
+│   │       └── adapter/ElasticsearchTutorAdapter.java
+│   └── MarketplaceModuleConfiguration.java
+│
+├── reservas/                                  # BC 3: Reservas (Módulo Independiente)
+│   ├── domain/
+│   │   ├── entity/
+│   │   │   ├── Reserva.java               # Aggregate Root
+│   │   │   └── Disponibilidad.java
+│   │   ├── valueobject/
+│   │   │   ├── ReservaId.java
+│   │   │   ├── FechaHora.java
+│   │   │   ├── Duracion.java
+│   │   │   └── EstadoReserva.java
+│   │   ├── repository/
+│   │   │   └── ReservaRepository.java     # Port (Interface)
+│   │   ├── service/
+│   │   │   └── DisponibilidadService.java # Domain Service
+│   │   └── event/
+│   │       ├── ReservaCreada.java         # Domain Event
+│   │       ├── ReservaConfirmada.java
+│   │       └── ReservaCancelada.java
+│   ├── application/
+│   │   ├── usecase/
+│   │   │   ├── CrearReservaUseCase.java
+│   │   │   ├── ConfirmarReservaUseCase.java
+│   │   │   └── CancelarReservaUseCase.java
+│   │   └── eventhandler/
+│   │       └── PagoConfirmadoHandler.java     # Escucha eventos de Pagos
+│   ├── infrastructure/
+│   │   ├── persistence/
+│   │   │   └── adapter/ReservaPersistenceAdapter.java
+│   │   ├── web/
+│   │   │   └── controller/ReservaController.java
+│   │   └── messaging/
+│   │       └── producer/ReservaEventProducer.java
+│   └── ReservasModuleConfiguration.java
+│
+└── pagos/                                     # BC 4: Pagos (Módulo Independiente)
+    ├── domain/
+    │   ├── entity/
+    │   │   ├── Pago.java                  # Aggregate Root
+    │   │   └── MetodoPago.java
+    │   ├── valueobject/
+    │   │   ├── PagoId.java
+    │   │   ├── Monto.java
+    │   │   └── EstadoPago.java
+    │   ├── repository/
+    │   │   └── PagoRepository.java        # Port (Interface)
+    │   ├── service/
+    │   │   └── PaymentGateway.java        # Port (Interface)
+    │   └── event/
+    │       ├── PagoIniciado.java          # Domain Event
+    │       ├── PagoConfirmado.java
+    │       └── PagoRechazado.java
+    ├── application/
+    │   ├── usecase/
+    │   │   ├── ProcesarPagoUseCase.java
+    │   │   └── ReembolsarPagoUseCase.java
+    │   └── eventhandler/
+    │       └── ReservaConfirmadaHandler.java  # Escucha eventos de Reservas
+    ├── infrastructure/
+    │   ├── persistence/
+    │   │   └── adapter/PagoPersistenceAdapter.java
+    │   ├── web/
+    │   │   └── controller/PagoController.java
+    │   └── gateway/
+    │       └── StripePaymentGatewayAdapter.java
+    └── PagosModuleConfiguration.java
+```
+
+### Reglas de Comunicación Entre Módulos (CRÍTICAS)
+
+**❌ PROHIBIDO (Acoplamiento Directo):**
+```java
+// ❌ NUNCA: Usar clases directamente de otro módulo
+import com.mitoga.autenticacion.domain.entity.Usuario;
+
+@Service
+public class ReservaService {
+    @Autowired
+    private UsuarioRepository usuarioRepository; // ❌ VIOLACIÓN: Dependencia directa
+    
+    public void crearReserva(ReservaRequest request) {
+        Usuario usuario = usuarioRepository.findById(request.usuarioId()); // ❌ VIOLACIÓN
+        // ...
+    }
+}
+
+// ❌ NUNCA: Foreign Keys entre módulos en BD
+CREATE TABLE reservas.reserva (
+    id UUID,
+    usuario_id UUID REFERENCES autenticacion.usuario(id), -- ❌ VIOLACIÓN: FK cross-module
+    -- ...
+);
+```
+
+---
+
+### ❌ LOMBOK - COMPLETAMENTE PROHIBIDO EN CAPA DE DOMINIO
+
+**POLÍTICA CRÍTICA:** Lombok está **completamente prohibido** en entidades de dominio (Aggregates, Entities, Value Objects). Esta restricción es **OBLIGATORIA** en arquitecturas DDD + Hexagonal por las siguientes razones técnicas:
+
+#### 🚫 Por Qué Lombok Viola DDD + Hexagonal
+
+1. **Expone Setters → Rompe Encapsulación:**
+   - `@Data` genera setters públicos para todos los campos
+   - Permite mutación descontrolada desde fuera del dominio
+   - Imposibilita validación de invariantes de negocio
+   - Viola el principio de "Tell, Don't Ask"
+
+2. **Permite Estados Inválidos → Viola Invariantes:**
+   - Setters permiten modificar el estado sin validación
+   - Entidades pueden quedar en estados inconsistentes
+   - Las reglas de negocio no se pueden aplicar
+
+3. **Constructores Sin Control → Rompe Factory Methods:**
+   - `@AllArgsConstructor` genera constructores públicos con todos los campos
+   - Imposibilita factories que validen reglas de negocio
+   - No se pueden aplicar patrones como Builder con validación
+
+4. **Igualdad Estructural → Rompe Identidad de Entidades:**
+   - `@EqualsAndHashCode` usa todos los campos por defecto
+   - Entidades deben compararse por ID, no por estructura
+   - Value Objects sí pueden usar igualdad estructural, pero Aggregates NO
+
+**❌ CÓDIGO PROHIBIDO (con Lombok):**
+```java
+// ❌ VIOLACIÓN: @Data genera setters, rompe encapsulación
+@Data
+@Entity
+@Table(name = "usuarios", schema = "autenticacion")
+public class Usuario {
+    @Id
+    private UUID id;
+    private String email;
+    private String password;
+    private boolean emailVerificado;
+    private int intentosFallidosLogin;
+    private LocalDateTime fechaBloqueo;
+    
+    // ❌ PROBLEMA: @Data genera setters públicos
+    // Permite código como:
+    // usuario.setIntentosFallidosLogin(999); // Sin validación!
+    // usuario.setEmailVerificado(true); // Sin lógica de negocio!
+}
+
+// ❌ VIOLACIÓN: Código cliente rompe invariantes
+@Service
+public class LoginService {
+    public void login(Usuario usuario, String password) {
+        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+            // ❌ MUTACIÓN DIRECTA: Sin validación de bloqueo
+            usuario.setIntentosFallidosLogin(usuario.getIntentosFallidosLogin() + 1);
+            
+            if (usuario.getIntentosFallidosLogin() >= 5) {
+                // ❌ LÓGICA DE NEGOCIO FUERA DEL DOMINIO
+                usuario.setFechaBloqueo(LocalDateTime.now());
+            }
+        }
+    }
+}
+```
+
+**✅ CÓDIGO CORRECTO (sin Lombok, DDD puro):**
+```java
+// ✅ CORRECTO: Entidad de dominio sin Lombok
+@Entity
+@Table(name = "usuarios", schema = "autenticacion")
+public class Usuario {
+    @Id
+    private UUID id;
+    private String email;
+    private String password;
+    private boolean emailVerificado;
+    private int intentosFallidosLogin;
+    private LocalDateTime fechaBloqueo;
+    
+    // ✅ Constructor privado (solo factories pueden crear)
+    private Usuario() {}
+    
+    // ✅ Factory Method con validación
+    public static Usuario registrar(String email, String passwordEncriptado) {
+        Objects.requireNonNull(email, "Email es requerido");
+        Objects.requireNonNull(passwordEncriptado, "Password es requerido");
+        
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new EmailInvalidoException(email);
+        }
+        
+        Usuario usuario = new Usuario();
+        usuario.id = UUID.randomUUID();
+        usuario.email = email;
+        usuario.password = passwordEncriptado;
+        usuario.emailVerificado = false;
+        usuario.intentosFallidosLogin = 0;
+        usuario.fechaBloqueo = null;
+        
+        return usuario;
+    }
+    
+    // ✅ Comportamiento de dominio (método de negocio)
+    public void registrarLoginFallido() {
+        this.intentosFallidosLogin++;
+        
+        if (this.intentosFallidosLogin >= 5) {
+            this.fechaBloqueo = LocalDateTime.now();
+            throw new CuentaBloqueadaException(this.id);
+        }
+    }
+    
+    // ✅ Comportamiento de dominio (método de negocio)
+    public void verificarEmail(String token) {
+        if (this.emailVerificado) {
+            throw new EmailYaVerificadoException(this.email);
+        }
+        
+        // Validar token...
+        this.emailVerificado = true;
+        this.intentosFallidosLogin = 0; // Reset al verificar
+    }
+    
+    // ✅ Solo getters (sin setters)
+    public UUID getId() { return id; }
+    public String getEmail() { return email; }
+    public boolean isEmailVerificado() { return emailVerificado; }
+    public boolean estaBloqueado() {
+        return fechaBloqueo != null && fechaBloqueo.isAfter(LocalDateTime.now().minusHours(24));
+    }
+    
+    // ✅ Igualdad por ID (no por campos)
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Usuario)) return false;
+        Usuario usuario = (Usuario) o;
+        return Objects.equals(id, usuario.id);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}
+
+// ✅ CORRECTO: Servicio usa comportamiento de dominio
+@Service
+public class LoginService implements LoginUseCase {
+    
+    @Override
+    public AutenticacionResponse execute(LoginCommand command) {
+        Usuario usuario = usuarioRepository.buscarPorEmail(command.email())
+            .orElseThrow(() -> new CredencialesInvalidasException());
+        
+        if (!passwordEncoder.matches(command.password(), usuario.getPassword())) {
+            // ✅ LÓGICA EN EL DOMINIO: La entidad se auto-gestiona
+            usuario.registrarLoginFallido();
+            usuarioRepository.save(usuario);
+            throw new CredencialesInvalidasException();
+        }
+        
+        // ✅ Toda la lógica está encapsulada en el dominio
+        return new AutenticacionResponse(usuario.getId(), generarJWT(usuario));
+    }
+}
+```
+
+#### 📋 Resumen de la Política NO LOMBOK
+
+| Capa | Lombok Permitido | Razón |
+|------|------------------|-------|
+| **domain/model/** | ❌ **NO** | Entidades deben tener comportamiento, factory methods, invariantes |
+| **domain/repository/** | ✅ SÍ (interfaces) | Interfaces no tienen implementación |
+| **domain/exception/** | ✅ SÍ (con `@Getter`) | Excepciones son solo data carriers |
+| **application/command/** | ✅ SÍ (con `@Data`) | DTOs inmutables, no tienen lógica |
+| **application/port/** | ✅ SÍ (interfaces) | Interfaces no tienen implementación |
+| **infrastructure/** | ⚠️ CUIDADO | Solo en entidades JPA si son diferentes de las de dominio |
+
+**REGLA DE ORO:** Si tiene lógica de negocio → NO Lombok. Si es puro DTO → SÍ Lombok (pero con `record` es mejor).
+
+---
+
+**✅ CORRECTO (Domain Events):**
+```java
+// ✅ COMUNICACIÓN POR EVENTOS: Módulo Autenticación publica evento
+@Component
+public class RegistrarUsuarioUseCase {
+    private final EventPublisher eventPublisher;
+    
+    @Transactional
+    public UsuarioId execute(RegistrarUsuarioCommand command) {
+        Usuario usuario = Usuario.registrar(command.email(), command.password());
+        usuarioRepository.save(usuario);
+        
+        // ✅ Publicar evento (sin conocer quién lo consume)
+        eventPublisher.publish(new UsuarioRegistrado(
+            usuario.getId(), 
+            usuario.getEmail(), 
+            usuario.getRol(),
+            LocalDateTime.now()
+        ));
+        
+        return usuario.getId();
+    }
+}
+
+// ✅ COMUNICACIÓN POR EVENTOS: Módulo Marketplace escucha evento
+@Component
+public class UsuarioRegistradoHandler {
+    private final CrearPerfilTutorUseCase crearPerfilTutorUseCase;
+    
+    @EventHandler
+    public void handle(UsuarioRegistrado event) {
+        if (event.rol() == RolUsuario.TUTOR) {
+            // ✅ No conoce detalles internos de Autenticación
+            // ✅ Solo usa los datos del evento
+            crearPerfilTutorUseCase.execute(new CrearPerfilTutorCommand(
+                event.usuarioId(),
+                event.email()
+            ));
+        }
+    }
+}
+```
+
+**✅ CORRECTO (APIs Internas via HTTP):**
+```java
+// ✅ ALTERNATIVA: API interna para consultas (solo lectura)
+@Component
+public class AutenticacionApiClient {
+    private final RestTemplate restTemplate;
+    
+    public UsuarioInfo obtenerUsuarioInfo(UsuarioId usuarioId) {
+        // ✅ Llamada HTTP interna (preparado para microservicio)
+        return restTemplate.getForObject(
+            "/internal/autenticacion/usuarios/{id}", 
+            UsuarioInfo.class, 
+            usuarioId.value()
+        );
+    }
+}
+
+// DTO para comunicación entre módulos (no entidades de dominio)
+public record UsuarioInfo(
+    UsuarioId id,
+    Email email,
+    String nombreCompleto,
+    RolUsuario rol,
+    EstadoUsuario estado
+) {}
+```
+
+### Configuración por Módulo
+
+**Cada módulo tiene su propia configuración Spring:**
+```java
+// AutenticacionModuleConfiguration.java
+@Configuration
+@ComponentScan("com.mitoga.autenticacion")
+@EntityScan("com.mitoga.autenticacion.infrastructure.persistence.entity")
+@EnableJpaRepositories("com.mitoga.autenticacion.infrastructure.persistence.repository")
+public class AutenticacionModuleConfiguration {
+    
+    @Bean
+    @ConfigurationProperties("mitoga.autenticacion")
+    public AutenticacionProperties autenticacionProperties() {
+        return new AutenticacionProperties();
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
+    }
+}
+
+// MarketplaceModuleConfiguration.java
+@Configuration
+@ComponentScan("com.mitoga.marketplace")
+@EntityScan("com.mitoga.marketplace.infrastructure.persistence.entity")
+@EnableJpaRepositories("com.mitoga.marketplace.infrastructure.persistence.repository")
+public class MarketplaceModuleConfiguration {
+    
+    @Bean
+    @ConfigurationProperties("mitoga.marketplace")
+    public MarketplaceProperties marketplaceProperties() {
+        return new MarketplaceProperties();
+    }
+    
+    @Bean
+    public ElasticsearchTemplate elasticsearchTemplate() {
+        // Configuración específica del módulo Marketplace
+        return new ElasticsearchTemplate(elasticsearchClient());
+    }
+}
+```
+
+### Base de Datos por Módulo (Schema Separation)
+
+**application.yml:**
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mitogadb
+    username: mitoga_user
+    password: ${DB_PASSWORD}
+  
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+        # Cada módulo gestiona su propio schema
+    
+# Configuración por módulo
+mitoga:
+  autenticacion:
+    schema: autenticacion_schema
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration: 86400
+  
+  marketplace:
+    schema: marketplace_schema
+    elasticsearch:
+      host: ${ES_HOST:localhost}
+      port: ${ES_PORT:9200}
+  
+  reservas:
+    schema: reservas_schema
+    cache:
+      disponibilidad-ttl: 300
+  
+  pagos:
+    schema: pagos_schema
+    stripe:
+      api-key: ${STRIPE_API_KEY}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+```
+
+### Testing por Módulo
+
+**Cada módulo debe ser testeable independientemente:**
+```java
+// AutenticacionModuleIntegrationTest.java
+@SpringBootTest(classes = AutenticacionModuleConfiguration.class)
+@Testcontainers
+@TestPropertySource(properties = {
+    "mitoga.autenticacion.schema=test_autenticacion_schema"
+})
+class AutenticacionModuleIntegrationTest {
+    
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
+        .withDatabaseName("mitoga_test");
+    
+    @Test
+    void moduloDebeInicializarCorrectamente() {
+        // Test de inicialización del módulo
+    }
+    
+    @Test
+    void debeRegistrarUsuarioCompleto() {
+        // Test end-to-end del módulo Autenticación
+    }
+}
+
+// MarketplaceModuleIntegrationTest.java  
+@SpringBootTest(classes = {
+    MarketplaceModuleConfiguration.class,
+    TestEventPublisherConfiguration.class  // Mock para eventos
+})
+class MarketplaceModuleIntegrationTest {
+    
+    @Test
+    void debeReaccionarAUsuarioRegistradoEvent() {
+        // Test de reacción a eventos de otros módulos
+    }
+}
+```
+
+### Extracción a Microservicio
+
+**Preparación para extracción (cada módulo ya está listo):**
+```java
+// 1. Crear nuevo proyecto Spring Boot
+// 2. Copiar package completo: com.mitoga.autenticacion -> nuevo proyecto
+// 3. Cambiar configuración de BD (nueva instancia)
+// 4. Cambiar eventos de in-memory a message broker (Kafka/RabbitMQ)
+// 5. Exponer APIs REST para comunicación inter-servicios
+// 6. ¡LISTO! El módulo ya era independiente
+
+// Ejemplo: AutenticacionApplication.java (microservicio extraído)
+@SpringBootApplication
+@Import(AutenticacionModuleConfiguration.class)
+public class AutenticacionApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(AutenticacionApplication.class, args);
+    }
+}
+
+// Configuración específica del microservicio
+@Configuration
+public class MicroserviceConfiguration {
+    
+    @Bean
+    public KafkaEventPublisher eventPublisher() {
+        // Cambio de in-memory a Kafka para comunicación entre microservicios
+        return new KafkaEventPublisher();
+    }
+}
+```
+
+### ArchUnit Rules para Monolito Modular (OBLIGATORIAS)
+
+**Cada proyecto DEBE incluir estas reglas ArchUnit:**
+```java
+@AnalyzeClasses(packages = "com.mitoga")
+class ModularMonolithArchitectureTest {
+    
+    // =====================================
+    // REGLAS DE SEPARACIÓN DE MÓDULOS
+    // =====================================
+    
+    @ArchTest
+    static final ArchRule modulos_no_deben_acceder_directamente_a_otros_modulos =
+        noClasses()
+            .that().resideInAPackage("com.mitoga.autenticacion..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.mitoga.marketplace..",
+                "com.mitoga.reservas..", 
+                "com.mitoga.pagos.."
+            )
+            .because("Los módulos deben comunicarse solo por Domain Events");
+    
+    @ArchTest
+    static final ArchRule marketplace_no_debe_acceder_a_otros_modulos =
+        noClasses()
+            .that().resideInAPackage("com.mitoga.marketplace..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.mitoga.autenticacion..",
+                "com.mitoga.reservas..", 
+                "com.mitoga.pagos.."
+            );
+    
+    @ArchTest
+    static final ArchRule reservas_no_debe_acceder_a_otros_modulos =
+        noClasses()
+            .that().resideInAPackage("com.mitoga.reservas..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.mitoga.autenticacion..",
+                "com.mitoga.marketplace..", 
+                "com.mitoga.pagos.."
+            );
+    
+    @ArchTest
+    static final ArchRule pagos_no_debe_acceder_a_otros_modulos =
+        noClasses()
+            .that().resideInAPackage("com.mitoga.pagos..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.mitoga.autenticacion..",
+                "com.mitoga.marketplace..", 
+                "com.mitoga.reservas.."
+            );
+    
+    // =====================================
+    // REGLAS DE COMUNICACIÓN POR EVENTOS
+    // =====================================
+    
+    @ArchTest
+    static final ArchRule solo_shared_puede_ser_usado_por_todos_los_modulos =
+        classes()
+            .that().resideInAPackage("com.mitoga.shared..")
+            .should().onlyBeAccessed().byAnyPackage(
+                "com.mitoga.autenticacion..",
+                "com.mitoga.marketplace..",
+                "com.mitoga.reservas..",
+                "com.mitoga.pagos..",
+                "com.mitoga.shared.."
+            );
+    
+    @ArchTest
+    static final ArchRule domain_events_deben_estar_en_shared_o_modulo_correspondiente =
+        classes()
+            .that().implement(DomainEvent.class)
+            .should().resideInAnyPackage(
+                "com.mitoga.shared.domain.event..",
+                "..domain.event.."
+            )
+            .because("Domain Events deben estar en shared (cross-module) o en domain.event del módulo");
+    
+    @ArchTest
+    static final ArchRule event_handlers_solo_en_application =
+        classes()
+            .that().areAnnotatedWith(EventHandler.class)
+            .should().resideInAPackage("..application.eventhandler..")
+            .because("Event Handlers deben estar en application layer");
+    
+    // =====================================
+    // REGLAS HEXAGONALES POR MÓDULO
+    // =====================================
+    
+    @ArchTest
+    static final ArchRule domain_no_debe_depender_de_nada_en_cada_modulo =
+        noClasses()
+            .that().resideInAnyPackage(
+                "..autenticacion.domain..",
+                "..marketplace.domain..",
+                "..reservas.domain..",
+                "..pagos.domain.."
+            )
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "..application..",
+                "..infrastructure..",
+                "org.springframework..",
+                "jakarta.persistence.."
+            )
+            .because("Domain layer debe ser independiente de frameworks");
+    
+    @ArchTest
+    static final ArchRule repositories_deben_ser_interfaces_en_domain =
+        classes()
+            .that().haveSimpleNameEndingWith("Repository")
+            .and().resideInAPackage("..domain.repository..")
+            .should().beInterfaces()
+            .because("Repositories en domain deben ser puertos (interfaces)");
+    
+    @ArchTest
+    static final ArchRule adapters_deben_estar_en_infrastructure =
+        classes()
+            .that().haveSimpleNameEndingWith("Adapter")
+            .should().resideInAPackage("..infrastructure..")
+            .because("Adapters deben implementar puertos en infrastructure layer");
+    
+    // =====================================
+    // REGLAS DE NAMING CONVENTIONS
+    // =====================================
+    
+    @ArchTest
+    static final ArchRule aggregates_deben_estar_en_domain_entity =
+        classes()
+            .that().areAnnotatedWith(AggregateRoot.class)
+            .should().resideInAPackage("..domain.entity..")
+            .andShould().notHaveSimpleNameEndingWith("Entity")
+            .because("Aggregates son objetos de dominio, no entidades de BD");
+    
+    @ArchTest
+    static final ArchRule value_objects_deben_ser_records =
+        classes()
+            .that().implement(ValueObject.class)
+            .should().beRecords()
+            .orShould().haveOnlyFinalFields()
+            .because("Value Objects deben ser inmutables (preferir Records)");
+    
+    @ArchTest
+    static final ArchRule use_cases_deben_estar_en_application =
+        classes()
+            .that().haveSimpleNameEndingWith("UseCase")
+            .should().resideInAPackage("..application.usecase..")
+            .andShould().implement(UseCase.class)
+            .because("Use Cases orquestan el dominio desde application layer");
+    
+    @ArchTest
+    static final ArchRule controllers_solo_en_infrastructure_web =
+        classes()
+            .that().areAnnotatedWith(Controller.class)
+            .or().areAnnotatedWith(RestController.class)
+            .should().resideInAPackage("..infrastructure.web.controller..")
+            .because("Controllers son adapters de entrada");
+    
+    // =====================================
+    // REGLAS DE CONFIGURACIÓN POR MÓDULO
+    // =====================================
+    
+    @ArchTest
+    static final ArchRule cada_modulo_debe_tener_su_configuracion =
+        classes()
+            .that().haveSimpleNameEndingWith("ModuleConfiguration")
+            .should().beAnnotatedWith(Configuration.class)
+            .andShould().resideInAnyPackage(
+                "com.mitoga.autenticacion",
+                "com.mitoga.marketplace",
+                "com.mitoga.reservas",
+                "com.mitoga.pagos"
+            )
+            .because("Cada módulo debe tener su propia configuración Spring");
+    
+    // =====================================
+    // REGLAS DE TESTING
+    // =====================================
+    
+    @ArchTest
+    static final ArchRule integration_tests_por_modulo =
+        classes()
+            .that().haveSimpleNameEndingWith("ModuleIntegrationTest")
+            .should().beAnnotatedWith(SpringBootTest.class)
+            .because("Cada módulo debe ser testeable independientemente");
+    
+    @ArchTest
+    static final ArchRule unit_tests_no_deben_usar_spring =
+        noClasses()
+            .that().resideInAnyPackage("..domain..", "..application..")
+            .and().haveSimpleNameEndingWith("Test")
+            .and().areNotAnnotatedWith(SpringBootTest.class)
+            .should().beAnnotatedWith(SpringBootTest.class)
+            .orShould().dependOnClassesThat().resideInAPackage("org.springframework..")
+            .because("Unit tests de domain/application no deben depender de Spring");
+}
+
+// ArchTest específico para validar Domain Events entre módulos
+@AnalyzeClasses(packages = "com.mitoga")
+class DomainEventArchitectureTest {
+    
+    @ArchTest
+    static final ArchRule events_cross_module_deben_estar_en_shared =
+        classes()
+            .that().haveSimpleNameMatching(".*(?:Usuario|Tutor|Reserva|Pago)(?:Registrado|Creado|Confirmado|Cancelado)")
+            .and().implement(DomainEvent.class)
+            .should().resideInAPackage("com.mitoga.shared.domain.event..")
+            .because("Eventos que cruzan módulos deben estar en shared");
+    
+    @ArchTest 
+    static final ArchRule event_handlers_no_deben_importar_entidades_de_otros_modulos =
+        noClasses()
+            .that().areAnnotatedWith(EventHandler.class)
+            .should().dependOnClassesThat().resideOutsideOfPackage("..shared..")
+            .and().resideInAnyPackage(
+                "..autenticacion.domain..",
+                "..marketplace.domain..", 
+                "..reservas.domain..",
+                "..pagos.domain.."
+            )
+            .because("Event handlers no deben conocer entidades de otros módulos");
+}
+```
+
+### Validación Automática en CI/CD
+
+**Integración en Pipeline (build.gradle):**
+```gradle
+dependencies {
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.1.0'
+}
+
+test {
+    useJUnitPlatform()
+    
+    // Fallar build si hay violaciones de arquitectura
+    systemProperty 'archunit.enable.violations', 'true'
+    
+    // Reportes de ArchUnit
+    finalizedBy jacocoTestReport
+    doLast {
+        println "✅ ArchUnit rules validated successfully"
+    }
+}
+
+// Task específica para validar arquitectura
+task validateArchitecture(type: Test) {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+        includeTags 'architecture'
+    }
+    
+    outputs.upToDateWhen { false } // Siempre ejecutar
+    
+    doFirst {
+        println "🏗️  Validating Modular Monolith Architecture..."
+    }
+}
+
+build.dependsOn validateArchitecture
+```
+
 ### Domain-Driven Design (Strategic + Tactical)
 
 **Strategic Design:**
@@ -2525,6 +3398,98 @@ Repeat Steps 2-4 for each Given-When-Then scenario
 1. Actualizar Javadoc en clases públicas
 2. Actualizar README si aplica
 3. Crear/actualizar ADR si decisión arquitectónica
+```
+
+**Paso 9.1: Postman Collections por Bounded Context**
+```
+OBLIGATORIO: Crear/Actualizar collection de Postman al agregar/modificar endpoints REST
+
+Ubicación: docs/postman/
+Nomenclatura: BC_<NOMBRE_DEL_BC>_<VERSION>.postman_collection.json
+Ejemplo: BC_Autenticacion_v1.postman_collection.json
+
+Reglas de Versionado:
+1. v1: Primera versión de la collection del BC
+2. v2: Cualquier modificación (nuevo endpoint, cambio en request/response, etc.)
+3. v3, v4, ...: Incrementar versión en cada cambio
+4. NO eliminar versiones anteriores (mantener historial)
+
+Estructura Requerida:
+{
+  "info": {
+    "name": "BC <Nombre> - MI-TOGA",
+    "description": "Bounded Context de <Nombre>: Breve descripción del dominio",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "<version>"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8082" },
+    { "key": "accessToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Sección Principal",
+      "item": [
+        {
+          "name": "1.1 Endpoint Específico",
+          "request": { ... },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["// Scripts para auto-guardar tokens, variables, etc."]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}" }]
+  }
+}
+
+Contenido Obligatorio:
+✅ Variables de colección (baseUrl, accessToken, refreshToken, etc.)
+✅ Scripts de test para auto-guardar tokens/datos importantes
+✅ Descripción clara en cada endpoint
+✅ Organización por secciones lógicas (Registro, Autenticación, Gestión, etc.)
+✅ Configuración de auth (Bearer Token) a nivel colección
+✅ Ejemplos de request bodies con datos de prueba válidos
+
+Cuándo Versionar:
+- Agregar nuevo endpoint → Nueva versión
+- Modificar request body de endpoint existente → Nueva versión
+- Modificar response esperado → Nueva versión
+- Cambiar URL de endpoint → Nueva versión
+- Agregar/modificar headers → Nueva versión
+- Cambiar método HTTP → Nueva versión
+
+NO versionar por:
+- Cambios en valores de variables (baseUrl, etc.)
+- Corrección de typos en descripciones
+- Mejoras en scripts de test que no afectan funcionalidad
+
+Ejemplo Práctico:
+docs/postman/
+├── BC_Autenticacion_v1.postman_collection.json   # Inicial: Login, Registro
+├── BC_Autenticacion_v2.postman_collection.json   # Agregado: Refresh Token, Logout
+├── BC_Autenticacion_v3.postman_collection.json   # Agregado: OAuth (Google, FB)
+├── BC_Catalogos_v1.postman_collection.json       # Inicial: CRUD básico
+├── BC_Catalogos_v2.postman_collection.json       # Agregado: Búsqueda avanzada
+├── BC_Notificaciones_v1.postman_collection.json  # Inicial: Listar, marcar leído
+└── BC_Shared_v1.postman_collection.json          # Health, Docs, Actuator
+
+Workflow:
+1. Implementar nuevo endpoint REST Controller
+2. Probar endpoint manualmente en Postman
+3. Exportar/Actualizar collection del BC correspondiente
+4. Incrementar versión en nombre del archivo
+5. Guardar en docs/postman/
+6. Commitear junto con código del endpoint
+7. Documentar cambios en PR/commit message
 ```
 
 **Paso 10: Pull Request**
