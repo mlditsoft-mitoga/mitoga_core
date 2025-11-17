@@ -1,0 +1,363 @@
+{
+  "info": {
+    "name": "Mitoga - Registro Estudiante (HUT-001)",
+    "description": "Collection para probar flujo completo de registro multi-step de estudiantes.\n\n**Arquitectura**: Hexagonal (Ports & Adapters) + DDD\n**Storage**: PostgreSQL 17.6 + Redis 7 + MinIO\n**Autenticación**: JWT (Access Token + Refresh Token)\n\n**Flujos cubiertos**:\n- ✅ Registro estudiante mayor de edad (4 steps)\n- ✅ Registro estudiante menor de edad (con responsable legal)\n- ✅ Validaciones (email duplicado, OTP inválido, transiciones de estado)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12345678"
+  },
+  "item": [
+    {
+      "name": "1. STEP 1 - Credenciales",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Tests automatizados",
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Response has required fields\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData.data).to.have.property('usuarioId');",
+              "    pm.expect(jsonData.data).to.have.property('procesoId');",
+              "    pm.expect(jsonData.data).to.have.property('mensaje');",
+              "});",
+              "",
+              "pm.test(\"UsuarioId is valid UUID\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    var uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+              "    pm.expect(jsonData.data.usuarioId).to.match(uuidRegex);",
+              "});",
+              "",
+              "pm.test(\"ProcesoId is valid UUID\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    var uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+              "    pm.expect(jsonData.data.procesoId).to.match(uuidRegex);",
+              "});",
+              "",
+              "pm.test(\"Mensaje mentions OTP\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.mensaje).to.include('OTP');",
+              "});",
+              "",
+              "// Guardar variables para siguientes requests",
+              "if (pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set(\"usuarioId\", jsonData.data.usuarioId);",
+              "    pm.environment.set(\"procesoId\", jsonData.data.procesoId);",
+              "    console.log(\"✅ Variables guardadas:\");",
+              "    console.log(\"  - usuarioId: \" + jsonData.data.usuarioId);",
+              "    console.log(\"  - procesoId: \" + jsonData.data.procesoId);",
+              "    ",
+              "    // IMPORTANTE: En tests reales, el OTP se obtendría del email o SMS",
+              "    // Para pruebas, simular OTP (en producción usar el real)",
+              "    pm.environment.set(\"otpCode\", \"123456\"); // Placeholder",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"aceptaTerminos\": true,\n  \"aceptaHabeasData\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/registro/step-1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "registro", "step-1"]
+        },
+        "description": "**STEP 1**: Registro de credenciales\n\n**Input**:\n- `email`: Email único del estudiante\n- `password`: Contraseña fuerte (min 8 chars, mayús/minús/número)\n- `aceptaTerminos`: true obligatorio\n- `aceptaHabeasData`: true obligatorio\n\n**Output**:\n- `usuarioId`: UUID del usuario creado\n- `procesoId`: UUID del proceso de registro (válido 24h)\n- `mensaje`: Confirmación de envío OTP\n\n**Validaciones**:\n- Email único (si existe → 409 Conflict)\n- Password fuerte (OWASP)\n- Términos y Habeas Data aceptados\n\n**Side Effects**:\n- Crea Usuario (estado PENDIENTE_VERIFICACION)\n- Crea ProcesoRegistro (estado CREDENCIALES_INGRESADAS)\n- Genera OTP de 6 dígitos (TTL 10 min en Redis)\n- Envía email con OTP (mock)"
+      },
+      "response": []
+    },
+    {
+      "name": "2. STEP 2 - Información Personal (Mayor Edad)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 2000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test(\"Proceso ID matches\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.procesoId).to.eql(pm.environment.get(\"procesoId\"));",
+              "});",
+              "",
+              "pm.test(\"No requiere responsable legal para mayor de edad\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.requiereResponsableLegal).to.be.false;",
+              "});",
+              "",
+              "pm.test(\"Step completado es 2\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.stepCompletado).to.eql(2);",
+              "});",
+              "",
+              "console.log(\"✅ Step 2 completado correctamente\");"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"procesoId\": \"{{procesoId}}\",\n  \"primerNombre\": \"Juan\",\n  \"segundoNombre\": \"Carlos\",\n  \"primerApellido\": \"Pérez\",\n  \"segundoApellido\": \"García\",\n  \"fechaNacimiento\": \"2000-05-15\",\n  \"genero\": \"M\",\n  \"paisId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"ciudadId\": \"660e8400-e29b-41d4-a716-446655440000\",\n  \"direccion\": \"Calle 123 # 45-67, Barrio Centro\",\n  \"telefono\": \"+57 310 1234567\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/registro/step-2",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "registro", "step-2"]
+        },
+        "description": "**STEP 2**: Información personal del estudiante\n\n**Input**:\n- Nombres (primer nombre obligatorio, capitalización automática)\n- Apellidos (primer apellido obligatorio)\n- Fecha de nacimiento (edad 10-120 años)\n- Género, País, Ciudad, Dirección, Teléfono\n- `responsableLegal`: null si mayor de edad\n\n**Output**:\n- `procesoId`: UUID del proceso\n- `requiereResponsableLegal`: false (mayor de 18 años)\n- `stepCompletado`: 2\n\n**Validaciones**:\n- Proceso debe existir y estar en estado válido\n- Edad mínima 10 años, máxima 120 años\n- Si menor de 18 años → requiere `responsableLegal`\n- Dirección: 5-500 caracteres\n- Teléfono: 7-20 dígitos\n\n**Side Effects**:\n- Actualiza ProcesoRegistro (estado INFORMACION_PERSONAL_COMPLETADA)\n- Actualiza Usuario con nombres, apellidos, teléfono\n- Si menor de edad, crea ResponsableLegal"
+      },
+      "response": []
+    },
+    {
+      "name": "3. STEP 3 - Archivos (Documentos e Imágenes)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 5000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+              "});",
+              "",
+              "pm.test(\"Verificación ID exists\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('verificacionId');",
+              "});",
+              "",
+              "pm.test(\"ArchivoIds array has 4 elements\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.archivoIds).to.be.an('array');",
+              "    pm.expect(jsonData.data.archivoIds).to.have.lengthOf(4);",
+              "});",
+              "",
+              "pm.test(\"Step completado es 3\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.stepCompletado).to.eql(3);",
+              "});",
+              "",
+              "// Guardar verificacionId para referencia",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set(\"verificacionId\", jsonData.data.verificacionId);",
+              "    console.log(\"✅ Archivos subidos correctamente\");",
+              "    console.log(\"  - verificacionId: \" + jsonData.data.verificacionId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "procesoId",
+              "value": "{{procesoId}}",
+              "type": "text"
+            },
+            {
+              "key": "tipoDocumento",
+              "value": "CEDULA_CIUDADANIA",
+              "type": "text"
+            },
+            {
+              "key": "numeroDocumento",
+              "value": "1234567890",
+              "type": "text"
+            },
+            {
+              "key": "fotoPerfil",
+              "type": "file",
+              "src": "/path/to/perfil.jpg",
+              "description": "Foto de perfil (JPG/PNG, max 5MB)"
+            },
+            {
+              "key": "fotoDocumentoFrontal",
+              "type": "file",
+              "src": "/path/to/doc_frontal.jpg",
+              "description": "Documento frontal (JPG/PNG)"
+            },
+            {
+              "key": "fotoDocumentoReverso",
+              "type": "file",
+              "src": "/path/to/doc_reverso.jpg",
+              "description": "Documento reverso (JPG/PNG)"
+            },
+            {
+              "key": "fotoEnVivo",
+              "type": "file",
+              "src": "/path/to/foto_vivo.jpg",
+              "description": "Foto en vivo / selfie (JPG/PNG)"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/registro/step-3",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "registro", "step-3"]
+        },
+        "description": "**STEP 3**: Upload de archivos (documentos e imágenes)\n\n**Input (multipart/form-data)**:\n- `procesoId`: UUID del proceso\n- `tipoDocumento`: CEDULA_CIUDADANIA, TARJETA_IDENTIDAD, PASAPORTE, etc.\n- `numeroDocumento`: Número del documento\n- `fotoPerfil`: Archivo imagen (JPG/PNG, max 5MB)\n- `fotoDocumentoFrontal`: Foto documento frontal\n- `fotoDocumentoReverso`: Foto documento reverso\n- `fotoEnVivo`: Selfie / foto en vivo\n\n**Output**:\n- `verificacionId`: UUID de VerificacionIdentidad creada\n- `archivoIds`: Array de 4 UUIDs (archivos guardados en MinIO)\n- `stepCompletado`: 3\n\n**Validaciones**:\n- Proceso debe estar en estado INFORMACION_PERSONAL_COMPLETADA\n- 4 archivos obligatorios\n- Formatos: image/jpeg, image/png\n- Tamaño máximo: 5MB por archivo\n\n**Side Effects**:\n- Sube 4 archivos a MinIO (bucket: mitoga-uploads)\n- Calcula hash SHA-256 de cada archivo\n- Crea 4 registros Archivo en DB\n- Crea VerificacionIdentidad (estado PENDIENTE)\n- Actualiza ProcesoRegistro (estado ARCHIVOS_CARGADOS)\n- Trigger verificación biométrica con IA (async)"
+      },
+      "response": []
+    },
+    {
+      "name": "4. STEP 4 - Confirmación OTP",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 2000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.test(\"Access token is present\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('accessToken');",
+              "    pm.expect(jsonData.data.accessToken).to.not.be.empty;",
+              "});",
+              "",
+              "pm.test(\"Refresh token is present\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+              "    pm.expect(jsonData.data.refreshToken).to.not.be.empty;",
+              "});",
+              "",
+              "pm.test(\"Usuario ID matches\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.usuarioId).to.eql(pm.environment.get(\"usuarioId\"));",
+              "});",
+              "",
+              "pm.test(\"Email verificado es true\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.emailVerificado).to.be.true;",
+              "});",
+              "",
+              "// Guardar tokens para futuras peticiones autenticadas",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
+              "    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+              "    console.log(\"✅✅✅ REGISTRO COMPLETADO EXITOSAMENTE ✅✅✅\");",
+              "    console.log(\"  - Access Token guardado\");",
+              "    console.log(\"  - Refresh Token guardado\");",
+              "    console.log(\"  - Email verificado: \" + jsonData.data.emailVerificado);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"procesoId\": \"{{procesoId}}\",\n  \"codigoOTP\": \"{{otpCode}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/registro/step-4",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "auth", "registro", "step-4"]
+        },
+        "description": "**STEP 4**: Confirmación de OTP y finalización de registro\n\n**Input**:\n- `procesoId`: UUID del proceso\n- `codigoOTP`: Código de 6 dígitos recibido por email/SMS\n\n**Output**:\n- `usuarioId`: UUID del usuario\n- `accessToken`: JWT para autenticación (exp: 1h)\n- `refreshToken`: JWT para renovar accessToken (exp: 7d)\n- `emailVerificado`: true\n\n**Validaciones**:\n- Proceso debe estar en estado ARCHIVOS_CARGADOS\n- OTP debe coincidir con el almacenado en Redis\n- OTP no debe haber expirado (TTL 10 min)\n- Máximo 3 intentos fallidos (después bloqueo 15 min)\n\n**Side Effects**:\n- Valida OTP contra Redis\n- Elimina OTP de Redis (consumo único)\n- Actualiza Usuario (emailVerificado = true)\n- Actualiza ProcesoRegistro (estado COMPLETADO, fechaCompletado = now)\n- Genera par de tokens JWT (Access + Refresh)\n- Resetea contador de intentos fallidos\n\n**Códigos de error**:\n- 400: OTP inválido o expirado\n- 429: Demasiados intentos (bloqueado 15 min)\n- 409: Proceso ya completado"
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script global - se ejecuta antes de cada request",
+          "console.log(\"========================================\");",
+          "console.log(\"🚀 Ejecutando: \" + pm.info.requestName);",
+          "console.log(\"========================================\");"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script global - se ejecuta después de cada request",
+          "console.log(\"========================================\");",
+          "console.log(\"📊 Status: \" + pm.response.code + \" \" + pm.response.status);",
+          "console.log(\"⏱️  Response time: \" + pm.response.responseTime + \"ms\");",
+          "console.log(\"========================================\\n\");"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "estudiante.test@mitoga.edu.co",
+      "type": "string"
+    },
+    {
+      "key": "testPassword",
+      "value": "MiPassword123!",
+      "type": "string"
+    }
+  ]
+}

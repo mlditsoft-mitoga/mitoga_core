@@ -35,7 +35,7 @@
 
 ### **⚠️ PUNTOS CRÍTICOS:**
 
-- **PASO 5 es CRÍTICO:** Crea `autenticacion_schema.proceso_registro` que necesita Spring Boot
+- **PASO 5 es CRÍTICO:** Crea `appmatch_schema.proceso_registro` que necesita Spring Boot
 - **Verificar cada paso:** Los resultados deben mostrar tablas/tipos creados
 - **Si hay errores:** Revisar que PostgreSQL 16.x esté configurado correctamente
 
@@ -47,8 +47,8 @@ CONFIGURACIÓN COMPLETADA EXITOSAMENTE
 ```
 
 Y las siguientes tablas/schemas confirmados:
-- ✅ `shared_schema` (con países, monedas, archivos)
-- ✅ `autenticacion_schema.proceso_registro` 
+- ✅ `appmatch_schema` (con países, monedas, archivos)
+- ✅ `appmatch_schema.proceso_registro` 
 - ✅ Tipos ENUM: `estado_registro`, `tipo_documento`, `tipo_archivo`
 
 ### **🎯 RESULTADO ESPERADO:**

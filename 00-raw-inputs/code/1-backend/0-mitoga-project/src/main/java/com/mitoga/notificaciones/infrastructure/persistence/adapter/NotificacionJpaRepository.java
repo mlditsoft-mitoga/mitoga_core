@@ -4,8 +4,6 @@ import com.mitoga.notificaciones.domain.entity.Notificacion;
 import com.mitoga.notificaciones.domain.repository.NotificacionRepository;
 import com.mitoga.notificaciones.domain.valueobject.NotificationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
@@ -23,19 +21,20 @@ public interface NotificacionJpaRepository extends JpaRepository<Notificacion, U
 
     /**
      * Busca notificaciones por usuario ID
+     * Query Method - Spring Data JPA genera automáticamente la consulta
      */
-    @Query("SELECT n FROM Notificacion n WHERE n.usuarioId = :usuarioId ORDER BY n.creationDate DESC")
-    List<Notificacion> findByUsuarioId(@Param("usuarioId") UUID usuarioId);
+    List<Notificacion> findByUsuarioIdOrderByCreationDateDesc(UUID usuarioId);
 
     /**
      * Busca notificaciones por estado
+     * Query Method - Spring Data JPA genera automáticamente la consulta
      */
-    @Query("SELECT n FROM Notificacion n WHERE n.estado = :estado ORDER BY n.creationDate DESC")
-    List<Notificacion> findByEstado(@Param("estado") NotificationStatus estado);
+    List<Notificacion> findByEstadoOrderByCreationDateDesc(NotificationStatus estado);
 
     /**
      * Busca notificaciones fallidas que pueden reintentarse
+     * Query Method - Spring Data JPA genera automáticamente la consulta
      */
-    @Query("SELECT n FROM Notificacion n WHERE n.estado = 'FALLIDO' AND n.intentosEnvio < 3 ORDER BY n.creationDate ASC")
-    List<Notificacion> findPendingRetries();
+    List<Notificacion> findByEstadoAndIntentosEnvioLessThanOrderByCreationDateAsc(NotificationStatus estado,
+            int maxIntentos);
 }

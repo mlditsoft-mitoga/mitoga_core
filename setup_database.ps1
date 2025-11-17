@@ -108,7 +108,7 @@ SELECT
     tablename,
     tableowner
 FROM pg_tables 
-WHERE schemaname = 'autenticacion_schema' 
+WHERE schemaname = 'appmatch_schema' 
 AND tablename = 'proceso_registro';
 "@
 
@@ -116,7 +116,7 @@ $env:PGPASSWORD = $DB_PASS
 $resultado = echo $verificacion | psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t
 
 if ($resultado -match "proceso_registro") {
-    Write-Host "✅ TABLA 'autenticacion_schema.proceso_registro' CONFIRMADA" -ForegroundColor Green
+    Write-Host "✅ TABLA 'appmatch_schema.proceso_registro' CONFIRMADA" -ForegroundColor Green
     
     # Ahora probar el startup de Spring Boot
     Write-Host "`n🚀 PROBANDO STARTUP DE APLICACIÓN..." -ForegroundColor Cyan
@@ -150,6 +150,6 @@ if ($resultado -match "proceso_registro") {
 
 Write-Host "`n📋 RESUMEN FINAL:" -ForegroundColor Yellow
 Write-Host "- ✅ Scripts de BD ejecutados" -ForegroundColor Green
-Write-Host "- ✅ Código Java corregido (schema autenticacion_schema)" -ForegroundColor Green
+Write-Host "- ✅ Código Java corregido (schema appmatch_schema)" -ForegroundColor Green
 Write-Host "- 🔧 Postman collection lista para pruebas" -ForegroundColor Green
 Write-Host "`n💡 SIGUIENTE PASO: Revisar logs de aplicación si hay errores" -ForegroundColor Yellow

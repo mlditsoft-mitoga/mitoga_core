@@ -21,11 +21,28 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * <b>Convención de base de datos:</b>
  * </p>
  * <ul>
- * <li>Schema por Bounded Context (autenticacion_schema, reservas_schema,
- * etc.)</li>
+ * <li>Schema único: appmatch_schema (todas las tablas del sistema)</li>
  * <li>Tablas con prefijo pkid_{tabla} para PKs</li>
  * <li>creation_date, expiration_date para auditoría y soft delete</li>
- * <li>Flyway gestiona migraciones (V1__init_schema.sql)</li>
+ * <li>Flyway gestiona migraciones (V001__crear_tabla_perfiles.sql,
+ * V002__crear_tabla_informacion_basica.sql, etc.)</li>
+ * <li>FK naming: fk_pkid_{tabla} para columnas,
+ * fk_{tabla_origen}_{tabla_destino} para constraints</li>
+ * </ul>
+ * 
+ * <p>
+ * <b>Nueva estructura de tablas (V001-V005):</b>
+ * </p>
+ * <ul>
+ * <li>appmatch_schema.perfiles - Catálogo de tipos de perfil (APRENDIZ, TUTOR,
+ * ADMIN)</li>
+ * <li>appmatch_schema.informacion_basica - Datos personales (nombres, fecha
+ * nacimiento, ubicación, etc.)</li>
+ * <li>appmatch_schema.perfil_informacion_basica - Relación N:M entre perfiles e
+ * información básica</li>
+ * <li>appmatch_schema.usuarios - Credenciales de autenticación (email,
+ * password, estado cuenta)</li>
+ * <li>appmatch_schema.archivos - Almacenamiento de archivos por perfil</li>
  * </ul>
  * 
  * <p>
@@ -33,7 +50,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * con @CreatedDate/@LastModifiedDate
  * </p>
  * 
- * @author MI-TOGA Development Team
+ * @author Backend Java Developer Senior - ZNS-METHOD
+ * @version 2.0 - Refactorizado para schema único appmatch_schema
+ * @date 2025-11-16
  */
 @Configuration
 @EnableJpaRepositories(basePackages = "com.mitoga")

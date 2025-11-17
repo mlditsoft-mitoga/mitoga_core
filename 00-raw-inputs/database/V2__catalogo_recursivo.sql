@@ -38,7 +38,7 @@
 -- 5. Tags/Etiquetas jerárquicas
 -- ====================
 
-CREATE TABLE shared_schema.catalogo_recursivo (
+CREATE TABLE appmatch_schema.catalogo_recursivo (
     -- ========================================
     -- CAMPOS OBLIGATORIOS ESTÁNDAR (SIEMPRE PRIMEROS 3)
     -- ========================================
@@ -128,7 +128,7 @@ CREATE TABLE shared_schema.catalogo_recursivo (
     
     -- Self-referencing FK para la jerarquía
     CONSTRAINT fk_catalogo_padre FOREIGN KEY (fkid_padre) 
-        REFERENCES shared_schema.catalogo_recursivo(pkid_catalogo_recursivo)
+        REFERENCES appmatch_schema.catalogo_recursivo(pkid_catalogo_recursivo)
         ON DELETE CASCADE ON UPDATE CASCADE,
     
     -- Validación de nivel (no puede ser negativo)
@@ -153,37 +153,37 @@ CREATE TABLE shared_schema.catalogo_recursivo (
 
 -- Índice principal: búsquedas por tipo de catálogo y estado
 CREATE INDEX idx_catalogo_tipo_activo 
-    ON shared_schema.catalogo_recursivo(catalogo_tipo, activo) 
+    ON appmatch_schema.catalogo_recursivo(catalogo_tipo, activo) 
     WHERE expiration_date IS NULL;
 
 -- Índice para navegación jerárquica (obtener hijos de un padre)
 CREATE INDEX idx_catalogo_padre 
-    ON shared_schema.catalogo_recursivo(fkid_padre) 
+    ON appmatch_schema.catalogo_recursivo(fkid_padre) 
     WHERE expiration_date IS NULL AND fkid_padre IS NOT NULL;
 
 -- Índice para nodos raíz
 CREATE INDEX idx_catalogo_raiz 
-    ON shared_schema.catalogo_recursivo(catalogo_tipo) 
+    ON appmatch_schema.catalogo_recursivo(catalogo_tipo) 
     WHERE expiration_date IS NULL AND fkid_padre IS NULL;
 
 -- Índice para búsquedas por código
 CREATE INDEX idx_catalogo_codigo 
-    ON shared_schema.catalogo_recursivo(codigo) 
+    ON appmatch_schema.catalogo_recursivo(codigo) 
     WHERE expiration_date IS NULL;
 
 -- Índice para ordenamiento
 CREATE INDEX idx_catalogo_orden 
-    ON shared_schema.catalogo_recursivo(catalogo_tipo, fkid_padre, orden) 
+    ON appmatch_schema.catalogo_recursivo(catalogo_tipo, fkid_padre, orden) 
     WHERE expiration_date IS NULL AND activo = TRUE;
 
 -- Índice GIN para búsquedas en metadatos JSONB
 CREATE INDEX idx_catalogo_metadatos 
-    ON shared_schema.catalogo_recursivo USING GIN(metadatos) 
+    ON appmatch_schema.catalogo_recursivo USING GIN(metadatos) 
     WHERE expiration_date IS NULL;
 
 -- Índice para búsquedas full-text en nombre y descripción
 CREATE INDEX idx_catalogo_fulltext 
-    ON shared_schema.catalogo_recursivo 
+    ON appmatch_schema.catalogo_recursivo 
     USING GIN(to_tsvector('spanish', nombre || ' ' || COALESCE(descripcion, '')))
     WHERE expiration_date IS NULL;
 
@@ -191,78 +191,78 @@ CREATE INDEX idx_catalogo_fulltext
 -- COMENTARIOS (Documentación)
 -- ========================================
 
-COMMENT ON TABLE shared_schema.catalogo_recursivo IS 
+COMMENT ON TABLE appmatch_schema.catalogo_recursivo IS 
 'Tabla recursiva para catálogos/diccionarios jerárquicos. Patrón Adjacency List.
 Casos de uso: categorías, ubicaciones, tipos de documento, especialidades, tags.
 Soporta jerarquías N-niveles con búsquedas recursivas vía CTEs.
 Incluye soft delete, i18n (es/en), ordenamiento y metadatos JSONB flexibles.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.pkid_catalogo_recursivo IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.pkid_catalogo_recursivo IS 
 'Primary Key UUID de la tabla catalogo_recursivo';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.creation_date IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.creation_date IS 
 'Fecha y hora de creación del registro (inmutable)';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.expiration_date IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.expiration_date IS 
 'Soft delete: NULL = activo, NOT NULL = fecha de eliminación lógica. 
 Al eliminar un padre, se propaga a todos los hijos por CASCADE.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.catalogo_tipo IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.catalogo_tipo IS 
 'Identificador del tipo de catálogo. Ejemplos: categorias_tutorias, ubicaciones, tipos_documento.
 Permite tener múltiples catálogos independientes en una sola tabla.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.fkid_padre IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.fkid_padre IS 
 'Foreign Key al nodo padre. NULL = nodo raíz (nivel 0).
 Self-referencing FK para construir la jerarquía.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.nivel IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.nivel IS 
 'Nivel de profundidad en el árbol. 0 = raíz, 1 = primer nivel hijo, etc.
 Calculado automáticamente por trigger para optimizar consultas.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.path_completo IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.path_completo IS 
 'Path completo desde la raíz usando PKIDs separados por /. 
 Ejemplo: /uuid-raiz/uuid-hijo/uuid-nieto. 
 Optimiza consultas de "todos los descendientes" sin recursión.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.codigo IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.codigo IS 
 'Código único dentro del catálogo_tipo. Útil para referencias en código.
 Ejemplos: MAT-001 (Matemáticas), COL-BOG (Bogotá), DNI (Cédula).';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.nombre IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.nombre IS 
 'Nombre visible en español (idioma por defecto). 
 Ejemplos: "Matemáticas", "Bogotá", "Documento Nacional de Identidad".';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.nombre_en IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.nombre_en IS 
 'Nombre visible en inglés (internacionalización). 
 Ejemplos: "Mathematics", "Bogota", "National Identity Document".';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.orden IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.orden IS 
 'Orden de presentación dentro del mismo nivel y padre.
 0 = primero, 1 = segundo, etc. Usado en ORDER BY para dropdowns.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.icono IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.icono IS 
 'Clase CSS o identificador de icono para el frontend.
 Ejemplos: "fa-book", "icon-math", "material-icons:location_on".';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.color IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.color IS 
 'Color hexadecimal para UI (#RRGGBB). 
 Ejemplos: #FF5733 (rojo), #3498DB (azul).';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.activo IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.activo IS 
 'Estado del nodo. TRUE = visible en frontend, FALSE = oculto.
 Filtrar en consultas con WHERE activo = TRUE.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.seleccionable IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.seleccionable IS 
 'Indica si el nodo puede ser seleccionado en el frontend.
 FALSE = solo agrupador/categoría (ej: "Ciencias" no seleccionable).
 TRUE = elemento final seleccionable (ej: "Física Cuántica" seleccionable).';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.tiene_hijos IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.tiene_hijos IS 
 'Denormalizado para performance. TRUE = tiene nodos hijos.
 Actualizado automáticamente por trigger. 
 Útil para mostrar iconos de expand/collapse en UI.';
 
-COMMENT ON COLUMN shared_schema.catalogo_recursivo.metadatos IS 
+COMMENT ON COLUMN appmatch_schema.catalogo_recursivo.metadatos IS 
 'Metadatos flexibles en formato JSONB.
 Ejemplos:
 - {"min_edad": 18, "requiere_certificado": true}
@@ -274,7 +274,7 @@ Ejemplos:
 -- ========================================
 
 -- Trigger 1: Calcular nivel y path automáticamente
-CREATE OR REPLACE FUNCTION shared_schema.catalogo_calcular_nivel_path()
+CREATE OR REPLACE FUNCTION appmatch_schema.catalogo_calcular_nivel_path()
 RETURNS TRIGGER AS $$
 DECLARE
     v_nivel SMALLINT;
@@ -288,7 +288,7 @@ BEGIN
         -- Obtener nivel y path del padre
         SELECT nivel + 1, path_completo || '/' || NEW.pkid_catalogo_recursivo::TEXT
         INTO v_nivel, v_path
-        FROM shared_schema.catalogo_recursivo
+        FROM appmatch_schema.catalogo_recursivo
         WHERE pkid_catalogo_recursivo = NEW.fkid_padre
           AND expiration_date IS NULL;
         
@@ -306,21 +306,21 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_catalogo_calcular_nivel_path
     BEFORE INSERT OR UPDATE OF fkid_padre
-    ON shared_schema.catalogo_recursivo
+    ON appmatch_schema.catalogo_recursivo
     FOR EACH ROW
-    EXECUTE FUNCTION shared_schema.catalogo_calcular_nivel_path();
+    EXECUTE FUNCTION appmatch_schema.catalogo_calcular_nivel_path();
 
-COMMENT ON FUNCTION shared_schema.catalogo_calcular_nivel_path() IS 
+COMMENT ON FUNCTION appmatch_schema.catalogo_calcular_nivel_path() IS 
 'Trigger function: Calcula automáticamente nivel y path_completo basándose en el padre.
 Ejecuta en INSERT y UPDATE de fkid_padre.';
 
 -- Trigger 2: Actualizar campo tiene_hijos en el padre
-CREATE OR REPLACE FUNCTION shared_schema.catalogo_actualizar_tiene_hijos()
+CREATE OR REPLACE FUNCTION appmatch_schema.catalogo_actualizar_tiene_hijos()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Cuando se inserta un hijo, marcar padre como tiene_hijos = TRUE
     IF TG_OP = 'INSERT' AND NEW.fkid_padre IS NOT NULL THEN
-        UPDATE shared_schema.catalogo_recursivo
+        UPDATE appmatch_schema.catalogo_recursivo
         SET tiene_hijos = TRUE
         WHERE pkid_catalogo_recursivo = NEW.fkid_padre
           AND NOT tiene_hijos;
@@ -328,10 +328,10 @@ BEGIN
     
     -- Cuando se elimina un hijo, verificar si el padre sigue teniendo hijos
     IF TG_OP = 'DELETE' AND OLD.fkid_padre IS NOT NULL THEN
-        UPDATE shared_schema.catalogo_recursivo
+        UPDATE appmatch_schema.catalogo_recursivo
         SET tiene_hijos = EXISTS (
             SELECT 1 
-            FROM shared_schema.catalogo_recursivo 
+            FROM appmatch_schema.catalogo_recursivo 
             WHERE fkid_padre = OLD.fkid_padre 
               AND expiration_date IS NULL
               AND pkid_catalogo_recursivo != OLD.pkid_catalogo_recursivo
@@ -342,10 +342,10 @@ BEGIN
     -- Cuando se hace soft delete (UPDATE expiration_date)
     IF TG_OP = 'UPDATE' AND NEW.expiration_date IS NOT NULL AND OLD.expiration_date IS NULL THEN
         IF OLD.fkid_padre IS NOT NULL THEN
-            UPDATE shared_schema.catalogo_recursivo
+            UPDATE appmatch_schema.catalogo_recursivo
             SET tiene_hijos = EXISTS (
                 SELECT 1 
-                FROM shared_schema.catalogo_recursivo 
+                FROM appmatch_schema.catalogo_recursivo 
                 WHERE fkid_padre = OLD.fkid_padre 
                   AND expiration_date IS NULL
                   AND pkid_catalogo_recursivo != OLD.pkid_catalogo_recursivo
@@ -364,16 +364,16 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_catalogo_actualizar_tiene_hijos
     AFTER INSERT OR UPDATE OR DELETE
-    ON shared_schema.catalogo_recursivo
+    ON appmatch_schema.catalogo_recursivo
     FOR EACH ROW
-    EXECUTE FUNCTION shared_schema.catalogo_actualizar_tiene_hijos();
+    EXECUTE FUNCTION appmatch_schema.catalogo_actualizar_tiene_hijos();
 
-COMMENT ON FUNCTION shared_schema.catalogo_actualizar_tiene_hijos() IS 
+COMMENT ON FUNCTION appmatch_schema.catalogo_actualizar_tiene_hijos() IS 
 'Trigger function: Actualiza automáticamente el campo tiene_hijos del padre.
 Ejecuta en INSERT, UPDATE y DELETE de nodos hijos.';
 
 -- Trigger 3: Actualizar updated_at automáticamente
-CREATE OR REPLACE FUNCTION shared_schema.catalogo_actualizar_timestamp()
+CREATE OR REPLACE FUNCTION appmatch_schema.catalogo_actualizar_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -383,11 +383,11 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_catalogo_actualizar_timestamp
     BEFORE UPDATE
-    ON shared_schema.catalogo_recursivo
+    ON appmatch_schema.catalogo_recursivo
     FOR EACH ROW
-    EXECUTE FUNCTION shared_schema.catalogo_actualizar_timestamp();
+    EXECUTE FUNCTION appmatch_schema.catalogo_actualizar_timestamp();
 
-COMMENT ON FUNCTION shared_schema.catalogo_actualizar_timestamp() IS 
+COMMENT ON FUNCTION appmatch_schema.catalogo_actualizar_timestamp() IS 
 'Trigger function: Actualiza automáticamente updated_at en cada UPDATE.';
 
 -- ========================================
@@ -395,7 +395,7 @@ COMMENT ON FUNCTION shared_schema.catalogo_actualizar_timestamp() IS
 -- ========================================
 
 -- Función 1: Obtener todos los hijos (descendientes) de un nodo
-CREATE OR REPLACE FUNCTION shared_schema.catalogo_obtener_descendientes(
+CREATE OR REPLACE FUNCTION appmatch_schema.catalogo_obtener_descendientes(
     p_padre_id UUID,
     p_incluir_padre BOOLEAN DEFAULT FALSE
 )
@@ -422,7 +422,7 @@ BEGIN
             c.fkid_padre,
             c.path_completo,
             c.activo
-        FROM shared_schema.catalogo_recursivo c
+        FROM appmatch_schema.catalogo_recursivo c
         WHERE c.pkid_catalogo_recursivo = p_padre_id
           AND c.expiration_date IS NULL
         
@@ -438,7 +438,7 @@ BEGIN
             c.fkid_padre,
             c.path_completo,
             c.activo
-        FROM shared_schema.catalogo_recursivo c
+        FROM appmatch_schema.catalogo_recursivo c
         INNER JOIN descendientes d ON c.fkid_padre = d.pkid_catalogo_recursivo
         WHERE c.expiration_date IS NULL
     )
@@ -457,7 +457,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-COMMENT ON FUNCTION shared_schema.catalogo_obtener_descendientes IS 
+COMMENT ON FUNCTION appmatch_schema.catalogo_obtener_descendientes IS 
 'Obtiene todos los descendientes (hijos, nietos, etc.) de un nodo específico.
 Parámetros:
 - p_padre_id: UUID del nodo padre
@@ -465,7 +465,7 @@ Parámetros:
 Retorna: Tabla con todos los descendientes ordenados por nivel y código.';
 
 -- Función 2: Obtener todos los ancestros (padres) de un nodo
-CREATE OR REPLACE FUNCTION shared_schema.catalogo_obtener_ancestros(
+CREATE OR REPLACE FUNCTION appmatch_schema.catalogo_obtener_ancestros(
     p_hijo_id UUID,
     p_incluir_hijo BOOLEAN DEFAULT FALSE
 )
@@ -490,7 +490,7 @@ BEGIN
             c.nivel,
             c.fkid_padre,
             c.path_completo
-        FROM shared_schema.catalogo_recursivo c
+        FROM appmatch_schema.catalogo_recursivo c
         WHERE c.pkid_catalogo_recursivo = p_hijo_id
           AND c.expiration_date IS NULL
         
@@ -505,7 +505,7 @@ BEGIN
             c.nivel,
             c.fkid_padre,
             c.path_completo
-        FROM shared_schema.catalogo_recursivo c
+        FROM appmatch_schema.catalogo_recursivo c
         INNER JOIN ancestros a ON c.pkid_catalogo_recursivo = a.fkid_padre
         WHERE c.expiration_date IS NULL
     )
@@ -523,7 +523,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-COMMENT ON FUNCTION shared_schema.catalogo_obtener_ancestros IS 
+COMMENT ON FUNCTION appmatch_schema.catalogo_obtener_ancestros IS 
 'Obtiene todos los ancestros (padres, abuelos, etc.) de un nodo específico.
 Parámetros:
 - p_hijo_id: UUID del nodo hijo
@@ -532,9 +532,9 @@ Retorna: Tabla con todos los ancestros ordenados por nivel (raíz primero).';
 
 -- Función 3: Obtener árbol completo de un catálogo (para dropdown jerárquico)
 -- Primero eliminamos la función existente para poder cambiar su firma
-DROP FUNCTION IF EXISTS shared_schema.catalogo_obtener_arbol(VARCHAR, BOOLEAN, BOOLEAN);
+DROP FUNCTION IF EXISTS appmatch_schema.catalogo_obtener_arbol(VARCHAR, BOOLEAN, BOOLEAN);
 
-CREATE OR REPLACE FUNCTION shared_schema.catalogo_obtener_arbol(
+CREATE OR REPLACE FUNCTION appmatch_schema.catalogo_obtener_arbol(
     p_catalogo_tipo VARCHAR,
     p_solo_activos BOOLEAN DEFAULT TRUE,
     p_solo_seleccionables BOOLEAN DEFAULT FALSE
@@ -588,7 +588,7 @@ BEGIN
         c.created_by,
         c.updated_at,
         c.updated_by
-    FROM shared_schema.catalogo_recursivo c
+    FROM appmatch_schema.catalogo_recursivo c
     WHERE c.catalogo_tipo = p_catalogo_tipo
       AND c.expiration_date IS NULL
       AND (NOT p_solo_activos OR c.activo = TRUE)
@@ -597,7 +597,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-COMMENT ON FUNCTION shared_schema.catalogo_obtener_arbol IS 
+COMMENT ON FUNCTION appmatch_schema.catalogo_obtener_arbol IS 
 'Obtiene el árbol completo de un catálogo para construir dropdowns jerárquicos.
 Parámetros:
 - p_catalogo_tipo: Tipo de catálogo (ej: categorias_tutorias)
@@ -611,7 +611,7 @@ Retorna: Tabla ordenada por nivel, padre y orden para construir UI jerárquica.'
 
 -- Ejemplo 1: Categorías de tutorías (3 niveles)
 /*
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, codigo, nombre, nombre_en, orden, seleccionable, activo) 
 VALUES
 -- Nivel 0 (Raíces)
@@ -620,7 +620,7 @@ VALUES
 ('categorias_tutorias', 'CAT-LENG', 'Lenguas', 'Languages', 3, FALSE, TRUE);
 
 -- Nivel 1 (Hijos de Matemáticas)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, orden, seleccionable, activo) 
 SELECT 
     'categorias_tutorias',
@@ -631,11 +631,11 @@ SELECT
     1,
     TRUE,
     TRUE
-FROM shared_schema.catalogo_recursivo 
+FROM appmatch_schema.catalogo_recursivo 
 WHERE codigo = 'CAT-MATE';
 
 -- Nivel 2 (Hijos de Álgebra)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, orden, seleccionable, activo, icono, color) 
 SELECT 
     'categorias_tutorias',
@@ -648,18 +648,18 @@ SELECT
     TRUE,
     'fa-calculator',
     '#3498DB'
-FROM shared_schema.catalogo_recursivo 
+FROM appmatch_schema.catalogo_recursivo 
 WHERE codigo = 'CAT-MATE-ALG';
 */
 
 -- Ejemplo 2: Ubicaciones geográficas (País → Departamento → Ciudad)
 /*
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, codigo, nombre, nombre_en, orden, seleccionable, metadatos) 
 VALUES
 ('ubicaciones', 'COL', 'Colombia', 'Colombia', 1, FALSE, '{"codigo_iso": "CO", "continente": "America"}');
 
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, orden, seleccionable, metadatos) 
 SELECT 
     'ubicaciones',
@@ -669,10 +669,10 @@ SELECT
     1,
     FALSE,
     '{"codigo_dane": "25", "capital": "Bogotá"}'
-FROM shared_schema.catalogo_recursivo 
+FROM appmatch_schema.catalogo_recursivo 
 WHERE codigo = 'COL';
 
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, orden, seleccionable, metadatos) 
 SELECT 
     'ubicaciones',
@@ -682,7 +682,7 @@ SELECT
     1,
     TRUE,
     '{"poblacion": 8000000, "codigo_postal": "110"}'
-FROM shared_schema.catalogo_recursivo 
+FROM appmatch_schema.catalogo_recursivo 
 WHERE codigo = 'COL-CUN';
 */
 
@@ -693,7 +693,7 @@ WHERE codigo = 'COL-CUN';
 -- 1. Obtener todos los nodos raíz de un catálogo
 /*
 SELECT * 
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE catalogo_tipo = 'categorias_tutorias'
   AND fkid_padre IS NULL
   AND expiration_date IS NULL
@@ -704,7 +704,7 @@ ORDER BY orden;
 -- 2. Obtener hijos directos de un nodo
 /*
 SELECT * 
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE fkid_padre = 'UUID-DEL-PADRE'
   AND expiration_date IS NULL
   AND activo = TRUE
@@ -713,23 +713,23 @@ ORDER BY orden;
 
 -- 3. Obtener todo el árbol de un catálogo (usando función)
 /*
-SELECT * FROM shared_schema.catalogo_obtener_arbol('categorias_tutorias', TRUE, FALSE);
+SELECT * FROM appmatch_schema.catalogo_obtener_arbol('categorias_tutorias', TRUE, FALSE);
 */
 
 -- 4. Obtener todos los descendientes de un nodo (usando función)
 /*
-SELECT * FROM shared_schema.catalogo_obtener_descendientes('UUID-DEL-PADRE', FALSE);
+SELECT * FROM appmatch_schema.catalogo_obtener_descendientes('UUID-DEL-PADRE', FALSE);
 */
 
 -- 5. Obtener breadcrumb/ruta completa de un nodo (usando función)
 /*
-SELECT * FROM shared_schema.catalogo_obtener_ancestros('UUID-DEL-HIJO', TRUE);
+SELECT * FROM appmatch_schema.catalogo_obtener_ancestros('UUID-DEL-HIJO', TRUE);
 */
 
 -- 6. Búsqueda full-text en nombres
 /*
 SELECT * 
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE catalogo_tipo = 'categorias_tutorias'
   AND to_tsvector('spanish', nombre || ' ' || COALESCE(descripcion, '')) @@ to_tsquery('spanish', 'matemática')
   AND expiration_date IS NULL
@@ -739,7 +739,7 @@ WHERE catalogo_tipo = 'categorias_tutorias'
 -- 7. Contar nodos por nivel en un catálogo
 /*
 SELECT nivel, COUNT(*) as total_nodos
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE catalogo_tipo = 'categorias_tutorias'
   AND expiration_date IS NULL
 GROUP BY nivel

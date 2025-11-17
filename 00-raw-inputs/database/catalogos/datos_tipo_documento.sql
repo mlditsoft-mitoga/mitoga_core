@@ -11,7 +11,7 @@
 -- ========================================
 
 -- Categoría: Personas Naturales Colombianas
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 VALUES
 (
@@ -31,7 +31,7 @@ VALUES
 );
 
 -- Categoría: Personas Jurídicas
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 VALUES
 (
@@ -51,7 +51,7 @@ VALUES
 );
 
 -- Categoría: Extranjeros
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 VALUES
 (
@@ -75,7 +75,7 @@ VALUES
 -- ========================================
 
 -- Cédula de Ciudadanía (CC)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -91,11 +91,11 @@ SELECT
     'fa-id-card',
     '#3742FA',
     '{"codigo_dian": "13", "longitud_min": 6, "longitud_max": 10, "formato": "numerico", "edad_minima": 18, "emite": "Registraduría Nacional"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-NAT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- Tarjeta de Identidad (TI)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -111,11 +111,11 @@ SELECT
     'fa-id-card-o',
     '#5F27CD',
     '{"codigo_dian": "12", "longitud_min": 10, "longitud_max": 11, "formato": "numerico", "edad_minima": 7, "edad_maxima": 17, "emite": "Registraduría Nacional"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-NAT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- Registro Civil (RC)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -131,11 +131,11 @@ SELECT
     'fa-file-text-o',
     '#A29BFE',
     '{"codigo_dian": "11", "longitud_min": 9, "longitud_max": 12, "formato": "numerico", "edad_minima": 0, "edad_maxima": 6, "emite": "Registraduría Nacional"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-NAT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- Cédula de Extranjería (CE) - Para residentes
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -151,11 +151,11 @@ SELECT
     'fa-vcard',
     '#00D2D3',
     '{"codigo_dian": "22", "longitud_min": 6, "longitud_max": 7, "formato": "numerico", "emite": "Migración Colombia", "requiere_visa": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-NAT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- NUIP (Número Único de Identificación Personal) - Sistema nuevo
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -171,7 +171,7 @@ SELECT
     'fa-fingerprint',
     '#8E44AD',
     '{"codigo_dian": "13", "longitud": 11, "formato": "numerico", "emite": "Registraduría Nacional", "en_implementacion": true, "año_inicio": 2023}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-NAT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- ========================================
@@ -179,7 +179,7 @@ WHERE codigo = 'DOC-CAT-NAT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration
 -- ========================================
 
 -- NIT (Número de Identificación Tributaria)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -195,7 +195,7 @@ SELECT
     'fa-briefcase',
     '#27AE60',
     '{"codigo_dian": "31", "longitud": 10, "formato": "numerico_con_dv", "digito_verificacion": true, "emite": "DIAN", "obligatorio_facturacion": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-JUR' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- ========================================
@@ -203,7 +203,7 @@ WHERE codigo = 'DOC-CAT-JUR' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration
 -- ========================================
 
 -- Pasaporte
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -219,11 +219,11 @@ SELECT
     'fa-plane',
     '#E67E22',
     '{"codigo_dian": "41", "longitud_min": 6, "longitud_max": 20, "formato": "alfanumerico", "emite": "País de origen", "internacional": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-EXT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- PEP (Permiso Especial de Permanencia)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -239,11 +239,11 @@ SELECT
     'fa-id-badge',
     '#E74C3C',
     '{"codigo_dian": "47", "longitud": 13, "formato": "alfanumerico", "emite": "Migración Colombia", "temporal": true, "nacionalidad": "VE"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-EXT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- PPT (Permiso por Protección Temporal)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -259,11 +259,11 @@ SELECT
     'fa-shield',
     '#C0392B',
     '{"codigo_dian": "47", "longitud": 20, "formato": "alfanumerico", "emite": "Migración Colombia", "temporal": true, "nacionalidad": "VE", "vigencia_años": 10}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-EXT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- DIE (Documento Identidad Extranjero)
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'TIPO_DOCUMENTO',
@@ -279,7 +279,7 @@ SELECT
     'fa-address-card-o',
     '#D35400',
     '{"codigo_dian": "50", "longitud_min": 5, "longitud_max": 30, "formato": "alfanumerico", "emite": "País extranjero"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'DOC-CAT-EXT' AND catalogo_tipo = 'TIPO_DOCUMENTO' AND expiration_date IS NULL;
 
 -- ========================================
@@ -294,21 +294,21 @@ DECLARE
 BEGIN
     -- Contar categorías (nivel 0)
     SELECT COUNT(*) INTO v_count_categorias
-    FROM shared_schema.catalogo_recursivo
+    FROM appmatch_schema.catalogo_recursivo
     WHERE catalogo_tipo = 'TIPO_DOCUMENTO' 
       AND nivel = 0
       AND expiration_date IS NULL;
     
     -- Contar documentos (nivel 1)
     SELECT COUNT(*) INTO v_count_documentos
-    FROM shared_schema.catalogo_recursivo
+    FROM appmatch_schema.catalogo_recursivo
     WHERE catalogo_tipo = 'TIPO_DOCUMENTO' 
       AND nivel = 1
       AND expiration_date IS NULL;
     
     -- Total
     SELECT COUNT(*) INTO v_count_total
-    FROM shared_schema.catalogo_recursivo
+    FROM appmatch_schema.catalogo_recursivo
     WHERE catalogo_tipo = 'TIPO_DOCUMENTO' 
       AND expiration_date IS NULL;
     
@@ -343,10 +343,10 @@ SELECT
     CASE WHEN activo THEN 'Activo' ELSE 'Inactivo' END AS estado,
     metadatos->>'codigo_dian' AS cod_dian,
     metadatos->>'emite' AS entidad_emisora
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE catalogo_tipo = 'TIPO_DOCUMENTO'
   AND expiration_date IS NULL
 ORDER BY nivel, orden;
 
 -- Obtener árbol completo usando la función
--- SELECT * FROM shared_schema.catalogo_obtener_arbol('TIPO_DOCUMENTO', TRUE, TRUE);
+-- SELECT * FROM appmatch_schema.catalogo_obtener_arbol('TIPO_DOCUMENTO', TRUE, TRUE);

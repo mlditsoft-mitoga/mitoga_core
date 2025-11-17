@@ -290,15 +290,15 @@ Para usar Vault en dev:
 
 El script V1__init_schema.sql crea 9 schemas:
 ```sql
-CREATE SCHEMA IF NOT EXISTS shared_schema;
-CREATE SCHEMA IF NOT EXISTS autenticacion_schema;
-CREATE SCHEMA IF NOT EXISTS marketplace_schema;
-CREATE SCHEMA IF NOT EXISTS perfiles_schema;
-CREATE SCHEMA IF NOT EXISTS reservas_schema;
-CREATE SCHEMA IF NOT EXISTS pagos_schema;
-CREATE SCHEMA IF NOT EXISTS videollamadas_schema;
-CREATE SCHEMA IF NOT EXISTS notificaciones_schema;
-CREATE SCHEMA IF NOT EXISTS admin_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
 ```
 
 Cada tabla sigue la convención:

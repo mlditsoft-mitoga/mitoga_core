@@ -355,11 +355,46 @@ NUNCA usar created_at/updated_at. SIEMPRE creation_date/expiration_date.
 **Foreign Keys:**
 ```
 Formato: {tabla_referenciada_singular}_id
-Ejemplos:
-  ✅ usuario_id (en tabla reservas)
-  ✅ tutor_id (en tabla valoraciones)
-  ✅ pais_codigo (si PK es 'codigo' en tabla paises)
+Nomenclatura de columnas FK: fk_pkid_{tabla_referenciada}
+Nomenclatura de constraints FK: fk_{tabla_origen}_{tabla_destino}
+
+Ejemplos de columnas Foreign Key:
+  ✅ usuario_id UUID (en tabla reservas, referencia a pkid_usuarios)
+  ✅ tutor_id UUID (en tabla valoraciones, referencia a pkid_tutores)
+  ✅ fk_pkid_catalogo_recursivo UUID (referencia a pkid_catalogo_recursivo)
+  ✅ pais_codigo VARCHAR(20) (si PK es 'codigo' en tabla paises - referencia por código)
   ❌ id_usuario (orden incorrecto)
+  ❌ catalogo_id (NO especifica que es FK)
+
+Ejemplo completo con catálogo recursivo:
+CREATE TABLE mitoga_schema.perfiles (
+    pkid_perfiles UUID DEFAULT gen_random_uuid() NOT NULL,
+    creation_date TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    expiration_date TIMESTAMPTZ NULL,
+    
+    -- Foreign Key a catálogo recursivo
+    fk_pkid_catalogo_recursivo UUID NOT NULL,
+    
+    codigo VARCHAR(20) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    
+    CONSTRAINT pk_perfiles PRIMARY KEY (pkid_perfiles),
+    CONSTRAINT fk_perfiles_catalogo_recursivo 
+        FOREIGN KEY (fk_pkid_catalogo_recursivo) 
+        REFERENCES mitoga_schema.catalogo_recursivo(pkid_catalogo_recursivo)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+-- Index en FK para performance
+CREATE INDEX idx_perfiles_catalogo 
+    ON mitoga_schema.perfiles(fk_pkid_catalogo_recursivo);
+
+REGLA CRÍTICA: 
+- Columna FK debe incluir 'fk_pkid_' cuando referencia a tabla con Primary Key UUID
+- El tipo de dato debe coincidir EXACTAMENTE con la PK referenciada (UUID, VARCHAR, etc.)
+- Siempre crear índice en columna FK para optimizar JOINs
+- Constraint FK debe nombrar: fk_{tabla_origen}_{tabla_destino}
 ```
 
 **Indexes:**

@@ -4,13 +4,12 @@ import com.mitoga.shared.infrastructure.storage.domain.entity.Archivo;
 import com.mitoga.shared.infrastructure.storage.domain.repository.ArchivoRepository;
 import com.mitoga.shared.infrastructure.storage.domain.valueobject.TipoArchivo;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 import java.util.Optional;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Adaptador de persistencia JPA para Archivo - ARQUITECTURA HEXAGONAL
@@ -20,32 +19,51 @@ import java.util.List;
  * ARQUITECTURA HEXAGONAL - INFRASTRUCTURE LAYER - PERSISTENCE ADAPTER
  * - Adaptador que implementa el puerto del repositorio
  * - Extiende JpaRepository para operaciones CRUD estándar
- * - Contiene queries específicas del dominio Archivos
+ * - Usa Query Methods derivados (sin SQL quemado en código)
  */
 @Repository
 public interface ArchivoJpaRepository extends JpaRepository<Archivo, UUID>, ArchivoRepository {
 
     /**
      * Busca archivos activos por tipo
+     * Query Method derivado: WHERE tipo_archivo = ? AND expiration_date IS NULL
+     * ORDER BY creation_date DESC
      */
-    @Query("SELECT a FROM Archivo a WHERE a.tipoArchivo = :tipoArchivo AND a.expirationDate IS NULL ORDER BY a.creationDate DESC")
-    List<Archivo> findByTipoArchivoAndExpirationDateIsNull(@Param("tipoArchivo") TipoArchivo tipoArchivo);
+    List<Archivo> findByTipoArchivoAndExpirationDateIsNullOrderByCreationDateDesc(TipoArchivo tipoArchivo);
 
     /**
-     * Busca archivos activos por entidad relacionada (usando metadatos)
+     * Busca archivo por hash (activo)
+     * Query Method derivado: WHERE hash_archivo = ? AND expiration_date IS NULL
      */
-    @Query(value = "SELECT a.* FROM shared_schema.archivos a WHERE a.metadatos_adicionales::jsonb @> jsonb_build_object('entityId', :entityId::text) AND a.expiration_date IS NULL", nativeQuery = true)
-    List<Archivo> findActiveFilesByEntityId(@Param("entityId") UUID entityId);
-
-    /**
-     * Busca archivo por hash
-     */
-    @Query("SELECT a FROM Archivo a WHERE a.hashArchivo = :hash AND a.expirationDate IS NULL")
-    Optional<Archivo> findByHashArchivo(@Param("hash") String hash);
+    Optional<Archivo> findByHashArchivoAndExpirationDateIsNull(String hash);
 
     /**
      * Verifica si existe archivo activo con storage key
+     * Query Method derivado: COUNT WHERE storage_key = ? AND expiration_date IS
+     * NULL > 0
      */
-    @Query("SELECT COUNT(a) > 0 FROM Archivo a WHERE a.storageKey = :storageKey AND a.expirationDate IS NULL")
-    boolean existsByStorageKeyAndExpirationDateIsNull(@Param("storageKey") String storageKey);
+    boolean existsByStorageKeyAndExpirationDateIsNull(String storageKey);
+
+    /**
+     * Busca todos los archivos activos (sin expiración)
+     * La lógica de filtrado JSONB se hace en Service/Adapter con stream()
+     */
+    List<Archivo> findByExpirationDateIsNull();
+
+    /**
+     * Busca archivos activos por entidad relacionada (metadatos JSONB)
+     * Implementación: Cargar archivos activos y filtrar en memoria por entityId en
+     * metadatos JSON
+     * Más mantenible que SQL nativo, eficiente para datasets pequeños/medianos
+     */
+    default List<Archivo> findActiveFilesByEntityId(UUID entityId) {
+        String entityIdStr = entityId.toString();
+        return findByExpirationDateIsNull().stream()
+                .filter(archivo -> {
+                    String metadatos = archivo.getMetadatosAdicionales();
+                    // Búsqueda simple en JSON string: contiene "entityId":"<uuid>"
+                    return metadatos != null && metadatos.contains("\"entityId\":\"" + entityIdStr + "\"");
+                })
+                .collect(Collectors.toList());
+    }
 }

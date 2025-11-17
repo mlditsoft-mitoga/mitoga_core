@@ -18,19 +18,22 @@ ARG BUILD_NUMBER
 # ----------------------------------------------------
 # STAGE 1: Builder
 # ----------------------------------------------------
-FROM docker.io/azul/zulu-openjdk-alpine:21 AS builder
+FROM gradle:8.14-jdk21-alpine AS builder
 
 WORKDIR /build
 
-# Copy project files
-COPY gradle gradle
-COPY gradlew .
+# Copy build files
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+
+# Download dependencies (separate layer for caching)
+RUN gradle --version
+
+# Copy source code
 COPY src src
 
 # Build application (use --no-cache flag when running docker build)
-RUN ./gradlew clean build -x test --no-daemon --console=plain
+RUN gradle clean build -x test --no-daemon --console=plain
 
 # Extract JAR layers for optimal Docker caching
 RUN java -Djarmode=layertools -jar build/libs/*[!-plain].jar extract --destination extracted

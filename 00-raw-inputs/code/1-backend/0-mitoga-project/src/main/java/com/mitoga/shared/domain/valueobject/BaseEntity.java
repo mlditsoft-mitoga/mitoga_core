@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -36,10 +35,6 @@ public abstract class BaseEntity {
     @Column(name = "creation_date", nullable = false, updatable = false)
     protected LocalDateTime creationDate;
 
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    protected LocalDateTime updatedAt;
-
     @Column(name = "expiration_date")
     protected LocalDateTime expirationDate;
 
@@ -48,14 +43,6 @@ public abstract class BaseEntity {
         if (creationDate == null) {
             creationDate = LocalDateTime.now();
         }
-        if (updatedAt == null) {
-            updatedAt = LocalDateTime.now();
-        }
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 
     /**

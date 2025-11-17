@@ -30,15 +30,19 @@ public interface NotificacionRepository {
     /**
      * Busca notificaciones por usuario ID
      */
-    List<Notificacion> findByUsuarioId(UUID usuarioId);
+    List<Notificacion> findByUsuarioIdOrderByCreationDateDesc(UUID usuarioId);
 
     /**
      * Busca notificaciones por estado
      */
-    List<Notificacion> findByEstado(NotificationStatus estado);
+    List<Notificacion> findByEstadoOrderByCreationDateDesc(NotificationStatus estado);
 
     /**
      * Busca notificaciones pendientes de reintento
+     * 
+     * @param estado      Estado de notificación (generalmente FALLIDO)
+     * @param maxIntentos Número máximo de intentos permitidos
      */
-    List<Notificacion> findPendingRetries();
+    List<Notificacion> findByEstadoAndIntentosEnvioLessThanOrderByCreationDateAsc(
+            NotificationStatus estado, int maxIntentos);
 }

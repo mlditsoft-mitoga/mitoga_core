@@ -21,13 +21,11 @@ import java.util.UUID;
  * - Registro de notificaciones enviadas (auditoría)
  */
 @Entity
-@Table(name = "notificaciones", schema = "shared_schema")
+@Table(name = "notificaciones", schema = "appmatch_schema")
+@AttributeOverride(name = "id", column = @Column(name = "pkid_notificacion"))
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Notificacion extends BaseEntity {
-
-    @Column(name = "pkid_notificacion")
-    private UUID pkidNotificacion;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false)
@@ -60,14 +58,6 @@ public class Notificacion extends BaseEntity {
 
     @Column(name = "error_mensaje", columnDefinition = "text")
     private String errorMensaje;
-
-    @PrePersist
-    protected void onCreate() {
-        super.onCreate();
-        if (pkidNotificacion == null) {
-            pkidNotificacion = getId();
-        }
-    }
 
     /**
      * Marca la notificación como enviada

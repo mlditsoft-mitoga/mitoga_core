@@ -311,9 +311,127 @@ CREATE TABLE reservas.reserva (
 
 ---
 
+## 🚫 POLÍTICAS CRÍTICAS DE CÓDIGO - PROHIBICIONES ABSOLUTAS
+
+### ❌ @Query ANNOTATION - COMPLETAMENTE PROHIBIDO EN REPOSITORIOS
+
+**POLÍTICA CRÍTICA #1:** La anotación `@Query` de Spring Data JPA está **completamente prohibida** en TODOS los repositorios. Esta restricción es **OBLIGATORIA** por las siguientes razones técnicas:
+
+#### 🚫 Por Qué @Query Viola Buenas Prácticas
+
+1. **SQL Hardcodeado → Rompe Abstracción:**
+   - Strings de SQL/JPQL embebidas en código Java
+   - Imposibilita refactoring automático (renombrar campos/entidades)
+   - Dificulta detección de errores en tiempo de compilación
+   - Viola principio de separación de concerns
+
+2. **Mantenibilidad Degradada:**
+   - Cambios en schema DB requieren buscar strings en código
+   - No hay type-safety en queries manuales
+   - Imposibilita validación sintáctica en IDE
+   - Dificulta testing (queries no son mockeables fácilmente)
+
+3. **Lógica de Negocio en Capa de Datos:**
+   - Operaciones `@Modifying` (UPDATE/DELETE bulk) mezclan concerns
+   - Agregaciones complejas pertenecen a Service Layer
+   - Repositorios deben ser simples adapters de persistencia
+
+4. **Violación Arquitectura Hexagonal:**
+   - Repositorios son OUTPUT PORTS (interfaces)
+   - Deben contener solo firmas de métodos
+   - Implementación debe ser derivada por Spring Data JPA
+
+**❌ CÓDIGO PROHIBIDO (con @Query):**
+```java
+// ❌ VIOLACIÓN: SQL hardcodeado en repositorio
+@Repository
+public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
+    
+    @Query("SELECT u FROM Usuario u WHERE u.email = :email")
+    Optional<Usuario> findByEmail(@Param("email") String email);
+    
+    @Query("SELECT u FROM Usuario u WHERE u.emailVerificado = false")
+    List<Usuario> findUsuariosSinVerificar();
+    
+    @Modifying
+    @Query("UPDATE Usuario u SET u.emailVerificado = true WHERE u.id = :id")
+    void verificarEmail(@Param("id") UUID id);
+}
+
+// ❌ VIOLACIÓN: Native query para JSONB
+@Query(value = "SELECT * FROM archivos WHERE metadatos::jsonb @> :filtro", nativeQuery = true)
+List<Archivo> findByMetadatos(@Param("filtro") String filtro);
+```
+
+**✅ CÓDIGO CORRECTO (Query Methods + Default Methods):**
+```java
+// ✅ CORRECTO: Query Methods derivados por Spring Data
+@Repository
+public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
+    
+    // ✅ Spring genera: SELECT u FROM Usuario u WHERE u.email = ?1
+    Optional<Usuario> findByEmail(String email);
+    
+    // ✅ Spring genera: SELECT u FROM Usuario u WHERE u.emailVerificado = false
+    List<Usuario> findByEmailVerificadoFalse();
+    
+    // ✅ Lógica compleja en default method (Java puro, testeable)
+    default List<Usuario> findUsuariosActivos() {
+        return findByEmailVerificadoTrue().stream()
+            .filter(u -> u.getEstadoCuenta() != EstadoCuenta.BLOQUEADA)
+            .collect(Collectors.toList());
+    }
+}
+
+// ✅ CORRECTO: Lógica de actualización en Service
+@Service
+public class UsuarioService {
+    
+    public void verificarEmail(UUID usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new UsuarioNoEncontradoException(usuarioId));
+        
+        usuario.verificarEmail(); // ✅ Lógica en dominio
+        usuarioRepository.save(usuario); // ✅ Repositorio solo persiste
+    }
+}
+
+// ✅ CORRECTO: Filtrado JSONB en memoria (datasets pequeños/medianos)
+@Repository
+public interface ArchivoRepository extends JpaRepository<Archivo, UUID> {
+    
+    List<Archivo> findByExpirationDateIsNull();
+    
+    default List<Archivo> findByMetadatos(String entityId) {
+        return findByExpirationDateIsNull().stream()
+            .filter(archivo -> {
+                String metadatos = archivo.getMetadatosAdicionales();
+                return metadatos != null && metadatos.contains("\"entityId\":\"" + entityId + "\"");
+            })
+            .collect(Collectors.toList());
+    }
+}
+```
+
+**🎯 Estrategias Permitidas:**
+
+1. **Query Methods Derivados:** `findByXAndYOrderByZ` - Spring genera SQL automáticamente
+2. **Default Methods:** Lógica Java en interface para filtrado post-query
+3. **Service Layer:** Operaciones bulk (UPDATE/DELETE) con `findAll()` + `saveAll()`/`deleteAll()`
+4. **Specifications API:** Para queries dinámicas complejas (filtros opcionales)
+5. **Criteria API:** Para construcción programática de queries type-safe
+
+**❌ NUNCA usar @Query para:**
+- SELECT simples (usa Query Methods derivados)
+- UPDATE/DELETE bulk (lógica va a Service con findAll + saveAll/deleteAll)
+- Agregaciones (COUNT, SUM, AVG → Service con stream operations)
+- Native queries (filtrado en memoria o Criteria API)
+
+---
+
 ### ❌ LOMBOK - COMPLETAMENTE PROHIBIDO EN CAPA DE DOMINIO
 
-**POLÍTICA CRÍTICA:** Lombok está **completamente prohibido** en entidades de dominio (Aggregates, Entities, Value Objects). Esta restricción es **OBLIGATORIA** en arquitecturas DDD + Hexagonal por las siguientes razones técnicas:
+**POLÍTICA CRÍTICA #2:** Lombok está **completamente prohibido** en entidades de dominio (Aggregates, Entities, Value Objects). Esta restricción es **OBLIGATORIA** en arquitecturas DDD + Hexagonal por las siguientes razones técnicas:
 
 #### 🚫 Por Qué Lombok Viola DDD + Hexagonal
 

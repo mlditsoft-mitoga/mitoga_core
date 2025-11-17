@@ -45,12 +45,12 @@ public class HealthCheckConfig {
             try {
                 // Intentar obtener conexión
                 redisConnectionFactory.getConnection().ping();
-                
+
                 return Health.up()
                         .withDetail("redis", "available")
                         .withDetail("host", redisConnectionFactory.getConnection().toString())
                         .build();
-                
+
             } catch (Exception e) {
                 // Si falla, retornar UP con warning (Redis es opcional)
                 return Health.up()

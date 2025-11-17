@@ -29,16 +29,16 @@ SELECT
 -- OPCIONAL: Limpiar schemas si necesitas empezar desde cero
 -- DESCOMENTA SOLO SI QUIERES RESETEAR TODO
 /*
-DROP SCHEMA IF EXISTS estudiantes_schema CASCADE;
-DROP SCHEMA IF EXISTS autenticacion_schema CASCADE;
-DROP SCHEMA IF EXISTS perfiles_schema CASCADE;
-DROP SCHEMA IF EXISTS marketplace_schema CASCADE;
-DROP SCHEMA IF EXISTS reservas_schema CASCADE;
-DROP SCHEMA IF EXISTS pagos_schema CASCADE;
-DROP SCHEMA IF EXISTS videollamadas_schema CASCADE;
-DROP SCHEMA IF EXISTS notificaciones_schema CASCADE;
-DROP SCHEMA IF EXISTS admin_schema CASCADE;
-DROP SCHEMA IF EXISTS shared_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
+DROP SCHEMA IF EXISTS appmatch_schema CASCADE;
 */
 
 -- ==============================================================================
@@ -54,19 +54,19 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "unaccent";
 
 -- Schemas principales
-CREATE SCHEMA IF NOT EXISTS shared_schema;
-CREATE SCHEMA IF NOT EXISTS autenticacion_schema;
-CREATE SCHEMA IF NOT EXISTS marketplace_schema;
-CREATE SCHEMA IF NOT EXISTS perfiles_schema;
-CREATE SCHEMA IF NOT EXISTS reservas_schema;
-CREATE SCHEMA IF NOT EXISTS pagos_schema;
-CREATE SCHEMA IF NOT EXISTS videollamadas_schema;
-CREATE SCHEMA IF NOT EXISTS notificaciones_schema;
-CREATE SCHEMA IF NOT EXISTS admin_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
+CREATE SCHEMA IF NOT EXISTS appmatch_schema;
 
 -- Verificar que se crearon correctamente
 SELECT schema_name FROM information_schema.schemata 
-WHERE schema_name IN ('shared_schema', 'autenticacion_schema', 'perfiles_schema')
+WHERE schema_name IN ('appmatch_schema', 'appmatch_schema', 'appmatch_schema')
 ORDER BY schema_name;
 
 -- ==============================================================================
@@ -74,7 +74,7 @@ ORDER BY schema_name;
 -- ==============================================================================
 
 -- Tabla países
-CREATE TABLE IF NOT EXISTS shared_schema.paises (
+CREATE TABLE IF NOT EXISTS appmatch_schema.paises (
     pkid_paises UUID DEFAULT gen_random_uuid() NOT NULL,
     creation_date TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     expiration_date TIMESTAMPTZ NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS shared_schema.paises (
 );
 
 -- Tabla monedas
-CREATE TABLE IF NOT EXISTS shared_schema.monedas (
+CREATE TABLE IF NOT EXISTS appmatch_schema.monedas (
     pkid_monedas UUID DEFAULT gen_random_uuid() NOT NULL,
     creation_date TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     expiration_date TIMESTAMPTZ NULL,
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS shared_schema.monedas (
 -- Verificar tablas creadas
 SELECT schemaname, tablename 
 FROM pg_tables 
-WHERE schemaname = 'shared_schema'
+WHERE schemaname = 'appmatch_schema'
 ORDER BY tablename;
 
 -- ==============================================================================
@@ -118,8 +118,8 @@ ORDER BY tablename;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'estado_registro' 
-                   AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'shared_schema')) THEN
-        CREATE TYPE shared_schema.estado_registro AS ENUM (
+                   AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'appmatch_schema')) THEN
+        CREATE TYPE appmatch_schema.estado_registro AS ENUM (
             'STEP_1_CREDENCIALES',
             'STEP_2_DATOS_PERSONALES', 
             'STEP_3_VERIFICACION_BIOMETRICA',
@@ -135,8 +135,8 @@ END $$;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_documento' 
-                   AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'shared_schema')) THEN
-        CREATE TYPE shared_schema.tipo_documento AS ENUM (
+                   AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'appmatch_schema')) THEN
+        CREATE TYPE appmatch_schema.tipo_documento AS ENUM (
             'CEDULA',
             'TARJETA_IDENTIDAD',
             'PASAPORTE',
@@ -148,14 +148,14 @@ END $$;
 -- Verificar tipos creados
 SELECT typname, nspname 
 FROM pg_type t JOIN pg_namespace n ON t.typnamespace = n.oid 
-WHERE nspname = 'shared_schema' AND typtype = 'e';
+WHERE nspname = 'appmatch_schema' AND typtype = 'e';
 
 -- ==============================================================================
 -- PASO 5: TABLA CRÍTICA - PROCESO DE REGISTRO (AUTENTICACIÓN SCHEMA)
 -- ==============================================================================
 
 -- ESTA ES LA TABLA QUE NECESITA SPRING BOOT PARA INICIAR
-CREATE TABLE IF NOT EXISTS autenticacion_schema.proceso_registro (
+CREATE TABLE IF NOT EXISTS appmatch_schema.proceso_registro (
     -- Campos obligatorios estándar
     pkid_proceso_registro UUID DEFAULT gen_random_uuid() NOT NULL,
     creation_date TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS autenticacion_schema.proceso_registro (
     usuario_id UUID, -- NULL hasta completar registro
     
     -- Estado del proceso
-    estado_actual shared_schema.estado_registro NOT NULL DEFAULT 'STEP_1_CREDENCIALES',
+    estado_actual appmatch_schema.estado_registro NOT NULL DEFAULT 'STEP_1_CREDENCIALES',
     step_completado INTEGER NOT NULL DEFAULT 0,
     
     -- Datos temporales (JSON por flexibilidad)
@@ -197,8 +197,8 @@ CREATE TABLE IF NOT EXISTS autenticacion_schema.proceso_registro (
 );
 
 -- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_proceso_registro_estado ON autenticacion_schema.proceso_registro(estado_actual);
-CREATE INDEX IF NOT EXISTS idx_proceso_registro_session ON autenticacion_schema.proceso_registro(session_id);
+CREATE INDEX IF NOT EXISTS idx_proceso_registro_estado ON appmatch_schema.proceso_registro(estado_actual);
+CREATE INDEX IF NOT EXISTS idx_proceso_registro_session ON appmatch_schema.proceso_registro(session_id);
 
 -- ==============================================================================
 -- PASO 6: TABLAS COMPLEMENTARIAS PARA ARCHIVOS
@@ -208,8 +208,8 @@ CREATE INDEX IF NOT EXISTS idx_proceso_registro_session ON autenticacion_schema.
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_archivo' 
-                   AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'shared_schema')) THEN
-        CREATE TYPE shared_schema.tipo_archivo AS ENUM (
+                   AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'appmatch_schema')) THEN
+        CREATE TYPE appmatch_schema.tipo_archivo AS ENUM (
             'DOCUMENTO_FRONTAL',
             'DOCUMENTO_TRASERO', 
             'SELFIE_VERIFICACION',
@@ -220,7 +220,7 @@ BEGIN
 END $$;
 
 -- Tabla archivos
-CREATE TABLE IF NOT EXISTS shared_schema.archivos (
+CREATE TABLE IF NOT EXISTS appmatch_schema.archivos (
     pkid_archivos UUID DEFAULT gen_random_uuid() NOT NULL,
     creation_date TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     expiration_date TIMESTAMPTZ NULL,
@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS shared_schema.archivos (
     nombre_original VARCHAR(255) NOT NULL,
     nombre_archivo VARCHAR(255) NOT NULL,
     ruta_storage VARCHAR(500) NOT NULL,
-    tipo_archivo shared_schema.tipo_archivo NOT NULL,
+    tipo_archivo appmatch_schema.tipo_archivo NOT NULL,
     tamaño_bytes BIGINT NOT NULL,
     mime_type VARCHAR(100) NOT NULL,
     hash_sha256 VARCHAR(64),
@@ -251,7 +251,7 @@ SELECT
     tablename,
     tableowner
 FROM pg_tables 
-WHERE schemaname = 'autenticacion_schema' 
+WHERE schemaname = 'appmatch_schema' 
 AND tablename = 'proceso_registro';
 
 -- Verificar estructura de la tabla crítica
@@ -261,7 +261,7 @@ SELECT
     is_nullable,
     column_default
 FROM information_schema.columns 
-WHERE table_schema = 'autenticacion_schema' 
+WHERE table_schema = 'appmatch_schema' 
 AND table_name = 'proceso_registro'
 ORDER BY ordinal_position;
 
@@ -273,13 +273,13 @@ SELECT
 FROM pg_type t 
 JOIN pg_namespace n ON t.typnamespace = n.oid
 LEFT JOIN pg_enum e ON t.oid = e.enumtypid
-WHERE n.nspname = 'shared_schema' 
+WHERE n.nspname = 'appmatch_schema' 
 AND t.typtype = 'e'
 GROUP BY t.typname, n.nspname
 ORDER BY t.typname;
 
 -- Insertar un registro de prueba para verificar que todo funciona
-INSERT INTO autenticacion_schema.proceso_registro 
+INSERT INTO appmatch_schema.proceso_registro 
 (estado_actual, step_completado, datos_step_1, session_id)
 VALUES 
 ('STEP_1_CREDENCIALES', 0, '{"email": "test@example.com"}', 'test-session-123');
@@ -291,20 +291,20 @@ SELECT
     step_completado,
     creation_date,
     session_id
-FROM autenticacion_schema.proceso_registro 
+FROM appmatch_schema.proceso_registro 
 WHERE session_id = 'test-session-123';
 
 -- Limpiar registro de prueba
-DELETE FROM autenticacion_schema.proceso_registro WHERE session_id = 'test-session-123';
+DELETE FROM appmatch_schema.proceso_registro WHERE session_id = 'test-session-123';
 
 -- ==============================================================================
 -- RESULTADO ESPERADO
 -- ==============================================================================
 
 -- Si todo está correcto, deberías ver:
--- ✅ Schemas creados: shared_schema, autenticacion_schema, etc.
+-- ✅ Schemas creados: appmatch_schema, appmatch_schema, etc.
 -- ✅ Tipos ENUM creados: estado_registro, tipo_documento, tipo_archivo
--- ✅ Tabla crítica: autenticacion_schema.proceso_registro
+-- ✅ Tabla crítica: appmatch_schema.proceso_registro
 -- ✅ Inserción y eliminación de prueba exitosa
 
 -- AHORA SPRING BOOT DEBERÍA INICIAR SIN ERRORES DE HIBERNATE

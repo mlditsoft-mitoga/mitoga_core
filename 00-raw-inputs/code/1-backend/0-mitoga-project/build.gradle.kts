@@ -35,6 +35,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     
+    // MinIO (S3-compatible storage)
+    implementation("io.minio:minio:8.5.7")
+    
     // AWS SDK v2 para S3
     implementation("software.amazon.awssdk:s3:2.28.9")
     implementation("software.amazon.awssdk:core:2.28.9")
@@ -75,6 +78,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:postgresql:1.19.8")
     testImplementation("org.testcontainers:junit-jupiter:1.19.8")
+    testImplementation("org.testcontainers:minio:1.19.8")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     
     // ArchUnit para tests de arquitectura

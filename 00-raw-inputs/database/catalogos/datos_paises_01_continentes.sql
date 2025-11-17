@@ -11,7 +11,7 @@
 -- ========================================
 
 -- América
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, nivel, orden, activo, seleccionable, icono, color, metadatos)
 VALUES 
 (
@@ -32,7 +32,7 @@ VALUES
 );
 
 -- Europa
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, nivel, orden, activo, seleccionable, icono, color, metadatos)
 VALUES 
 (
@@ -53,7 +53,7 @@ VALUES
 );
 
 -- Asia
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, nivel, orden, activo, seleccionable, icono, color, metadatos)
 VALUES 
 (
@@ -74,7 +74,7 @@ VALUES
 );
 
 -- África
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, nivel, orden, activo, seleccionable, icono, color, metadatos)
 VALUES 
 (
@@ -95,7 +95,7 @@ VALUES
 );
 
 -- Oceanía
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, nivel, orden, activo, seleccionable, icono, color, metadatos)
 VALUES 
 (
@@ -124,7 +124,7 @@ DECLARE
     v_count INTEGER;
 BEGIN
     SELECT COUNT(*) INTO v_count
-    FROM shared_schema.catalogo_recursivo
+    FROM appmatch_schema.catalogo_recursivo
     WHERE catalogo_tipo = 'PAIS' 
       AND nivel = 0
       AND expiration_date IS NULL;

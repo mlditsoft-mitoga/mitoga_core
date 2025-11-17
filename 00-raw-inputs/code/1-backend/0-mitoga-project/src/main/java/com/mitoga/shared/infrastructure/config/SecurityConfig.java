@@ -1,6 +1,6 @@
 package com.mitoga.shared.infrastructure.config;
 
-import com.mitoga.autenticacion.infrastructure.security.JwtAuthenticationFilter;
+// import com.mitoga.autenticacion.infrastructure.security.JwtAuthenticationFilter; // BC Autenticación eliminado
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,7 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+// import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // Ya no se usa
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,10 +35,10 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-        private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        // private final JwtAuthenticationFilter jwtAuthenticationFilter; // BC Autenticación eliminado
 
-        public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        public SecurityConfig() {
+                // this.jwtAuthenticationFilter = jwtAuthenticationFilter; // BC Autenticación eliminado
         }
 
         @Bean
@@ -57,7 +57,8 @@ public class SecurityConfig {
                                 // Autorización de requests
                                 .authorizeHttpRequests(auth -> auth
                                                 // Endpoints públicos - BC Autenticación
-                                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/registro").permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/auth/registro/**")
+                                                .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh-token")
                                                 .permitAll()
@@ -89,20 +90,22 @@ public class SecurityConfig {
                                                 // Endpoints públicos - BC Shared (Catálogos - Solo consultas)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/catalogos/buscar-arbol")
                                                 .permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/v1/catalogos/buscar").permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/catalogos/buscar")
+                                                .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/catalogos/buscar-ancestros")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.POST,
                                                                 "/api/v1/catalogos/buscar-descendientes")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/catalogos/*").permitAll() // Obtener
-                                                                                                                     // por
-                                                                                                                     // ID
+                                                                                                                    // por
+                                                                                                                    // ID
 
                                                 // Endpoints protegidos - BC Shared (Catálogos - Gestión)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/catalogos").authenticated() // Crear
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/catalogos/**").authenticated() // Actualizar
-                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/catalogos/**").authenticated() // Eliminar
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/catalogos/**")
+                                                .authenticated() // Eliminar
 
                                                 // Endpoints protegidos - BC Autenticación
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/vincular-oauth")
@@ -120,12 +123,12 @@ public class SecurityConfig {
                                                 // Admin endpoints (futura implementación)
                                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                                                // Cualquier otro request requiere autenticación
-                                                .anyRequest().authenticated())
+                                // Cualquier otro request requiere autenticación
+                                .anyRequest().authenticated());
 
                                 // JWT Authentication Filter (antes de UsernamePasswordAuthenticationFilter)
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
+                                // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // BC Autenticación eliminado
+                
                 return http.build();
         }
 
@@ -139,7 +142,8 @@ public class SecurityConfig {
                 CorsConfiguration configuration = new CorsConfiguration();
 
                 // Orígenes permitidos (ajustar según ambiente)
-                // Usar allowedOriginPatterns para permitir localhost con cualquier puerto + Swagger UI
+                // Usar allowedOriginPatterns para permitir localhost con cualquier puerto +
+                // Swagger UI
                 configuration.setAllowedOriginPatterns(Arrays.asList(
                                 "http://localhost:*", // Cualquier puerto localhost (Swagger UI, React, Vite)
                                 "http://127.0.0.1:*", // Alias de localhost

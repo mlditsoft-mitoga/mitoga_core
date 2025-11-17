@@ -2,7 +2,7 @@ package com.mitoga.shared.infrastructure.storage.domain.valueobject;
 
 /**
  * Enum para tipos de archivo - DOMAIN VALUE OBJECT
- * Basado en shared_schema.tipo_archivo del BD V4/V5/V5.1
+ * Basado en appmatch_schema.tipo_archivo del BD V4/V5/V5.1
  * Autor: Backend Java Developer Senior - ZNS-METHOD
  * Fecha: 2025-11-14
  * 

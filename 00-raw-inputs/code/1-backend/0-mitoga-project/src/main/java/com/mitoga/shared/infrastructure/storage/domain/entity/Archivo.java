@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import java.util.UUID;
 
 /**
- * Entidad Archivo - shared_schema.archivos
+ * Entidad Archivo - appmatch_schema.archivos
  * Basado en modelo de BD V4 con extensiones V5.1
  * Autor: Backend Java Developer Senior - ZNS-METHOD
  * Fecha: 2025-11-14
@@ -21,13 +21,11 @@ import java.util.UUID;
  * - Independiente de infraestructura (S3, BD)
  */
 @Entity
-@Table(name = "archivos", schema = "shared_schema")
+@Table(name = "archivos", schema = "appmatch_schema")
+@AttributeOverride(name = "id", column = @Column(name = "pkid_archivos"))
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Archivo extends BaseEntity {
-
-    @Column(name = "pkid_archivos")
-    private UUID pkidArchivos;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_archivo", nullable = false)
@@ -63,14 +61,6 @@ public class Archivo extends BaseEntity {
 
     @Column(name = "url_temporal", length = 500)
     private String urlTemporal;
-
-    @PrePersist
-    protected void onCreate() {
-        super.onCreate();
-        if (pkidArchivos == null) {
-            pkidArchivos = getId();
-        }
-    }
 
     /**
      * Verifica si el archivo requiere URL temporal para acceso

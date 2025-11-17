@@ -17,7 +17,7 @@
 -- ========================================
 
 -- Bogotá
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -33,11 +33,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": true, "departamento": "Cundinamarca", "poblacion_millones": 7.9, "altitud_msnm": 2640, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Medellín
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -53,11 +53,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Antioquia", "poblacion_millones": 2.5, "altitud_msnm": 1495, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Cali
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -73,11 +73,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Valle del Cauca", "poblacion_millones": 2.2, "altitud_msnm": 1018, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Barranquilla
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -93,11 +93,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Atlántico", "poblacion_millones": 1.2, "altitud_msnm": 18, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Cartagena
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -113,11 +113,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Bolívar", "poblacion_millones": 0.9, "altitud_msnm": 2, "zona_horaria": "UTC-5", "turistica": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Bucaramanga
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -133,11 +133,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Santander", "poblacion_millones": 0.6, "altitud_msnm": 959, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Cúcuta
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -153,11 +153,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Norte de Santander", "poblacion_millones": 0.7, "altitud_msnm": 320, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Pereira
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -173,11 +173,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Risaralda", "poblacion_millones": 0.5, "altitud_msnm": 1411, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Santa Marta
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -193,11 +193,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Magdalena", "poblacion_millones": 0.5, "altitud_msnm": 6, "zona_horaria": "UTC-5", "turistica": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Ibagué
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -213,11 +213,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Tolima", "poblacion_millones": 0.5, "altitud_msnm": 1285, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Manizales
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -233,11 +233,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Caldas", "poblacion_millones": 0.4, "altitud_msnm": 2150, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Villavicencio
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -253,11 +253,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Meta", "poblacion_millones": 0.5, "altitud_msnm": 467, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Pasto
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -273,11 +273,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Nariño", "poblacion_millones": 0.4, "altitud_msnm": 2527, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Armenia
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -293,11 +293,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Quindío", "poblacion_millones": 0.3, "altitud_msnm": 1483, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Neiva
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -313,11 +313,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Huila", "poblacion_millones": 0.3, "altitud_msnm": 442, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Popayán
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -333,11 +333,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Cauca", "poblacion_millones": 0.3, "altitud_msnm": 1738, "zona_horaria": "UTC-5", "patrimonio_unesco": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Valledupar
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -353,11 +353,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Cesar", "poblacion_millones": 0.5, "altitud_msnm": 169, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Montería
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -373,11 +373,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Córdoba", "poblacion_millones": 0.5, "altitud_msnm": 18, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Sincelejo
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -393,11 +393,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Sucre", "poblacion_millones": 0.3, "altitud_msnm": 213, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Tunja
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -413,11 +413,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Boyacá", "poblacion_millones": 0.2, "altitud_msnm": 2820, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Riohacha
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -433,11 +433,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "La Guajira", "poblacion_millones": 0.3, "altitud_msnm": 6, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Quibdó
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -453,11 +453,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Chocó", "poblacion_millones": 0.1, "altitud_msnm": 43, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Florencia
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -473,11 +473,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Caquetá", "poblacion_millones": 0.2, "altitud_msnm": 242, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Yopal
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -493,11 +493,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Casanare", "poblacion_millones": 0.1, "altitud_msnm": 350, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Arauca
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -513,11 +513,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Arauca", "poblacion_millones": 0.1, "altitud_msnm": 128, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Mocoa
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -533,11 +533,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Putumayo", "poblacion_millones": 0.05, "altitud_msnm": 655, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Leticia
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -553,11 +553,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Amazonas", "poblacion_millones": 0.04, "altitud_msnm": 96, "zona_horaria": "UTC-5", "frontera": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Puerto Carreño
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -573,11 +573,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Vichada", "poblacion_millones": 0.02, "altitud_msnm": 51, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- San José del Guaviare
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -593,11 +593,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Guaviare", "poblacion_millones": 0.05, "altitud_msnm": 175, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Mitú
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -613,11 +613,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Vaupés", "poblacion_millones": 0.02, "altitud_msnm": 180, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Inírida
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -633,11 +633,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Guainía", "poblacion_millones": 0.02, "altitud_msnm": 95, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Soacha
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -653,11 +653,11 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Cundinamarca", "poblacion_millones": 0.7, "altitud_msnm": 2566, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Bello
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -673,7 +673,7 @@ SELECT
     'fa-city',
     '#FFD700',
     '{"pais_codigo": "CO", "capital": false, "departamento": "Antioquia", "poblacion_millones": 0.5, "altitud_msnm": 1450, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -681,7 +681,7 @@ WHERE codigo = 'CO' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Ciudad de México
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -697,11 +697,11 @@ SELECT
     'fa-city',
     '#006341',
     '{"pais_codigo": "MX", "capital": true, "estado": "Ciudad de México", "poblacion_millones": 9.2, "altitud_msnm": 2240, "zona_horaria": "UTC-6"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'MX' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Guadalajara
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -717,11 +717,11 @@ SELECT
     'fa-city',
     '#006341',
     '{"pais_codigo": "MX", "capital": false, "estado": "Jalisco", "poblacion_millones": 1.5, "altitud_msnm": 1566, "zona_horaria": "UTC-6"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'MX' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Monterrey
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -737,7 +737,7 @@ SELECT
     'fa-city',
     '#006341',
     '{"pais_codigo": "MX", "capital": false, "estado": "Nuevo León", "poblacion_millones": 1.1, "altitud_msnm": 540, "zona_horaria": "UTC-6"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'MX' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -745,7 +745,7 @@ WHERE codigo = 'MX' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Buenos Aires
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -761,11 +761,11 @@ SELECT
     'fa-city',
     '#74ACDF',
     '{"pais_codigo": "AR", "capital": true, "provincia": "Ciudad Autónoma", "poblacion_millones": 3.1, "altitud_msnm": 25, "zona_horaria": "UTC-3"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'AR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Córdoba
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -781,11 +781,11 @@ SELECT
     'fa-city',
     '#74ACDF',
     '{"pais_codigo": "AR", "capital": false, "provincia": "Córdoba", "poblacion_millones": 1.3, "altitud_msnm": 390, "zona_horaria": "UTC-3"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'AR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Rosario
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -801,7 +801,7 @@ SELECT
     'fa-city',
     '#74ACDF',
     '{"pais_codigo": "AR", "capital": false, "provincia": "Santa Fe", "poblacion_millones": 0.9, "altitud_msnm": 22, "zona_horaria": "UTC-3"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'AR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -809,7 +809,7 @@ WHERE codigo = 'AR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Brasília
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -825,11 +825,11 @@ SELECT
     'fa-city',
     '#009B3A',
     '{"pais_codigo": "BR", "capital": true, "estado": "Distrito Federal", "poblacion_millones": 3.0, "altitud_msnm": 1172, "zona_horaria": "UTC-3"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'BR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- São Paulo
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -845,11 +845,11 @@ SELECT
     'fa-city',
     '#009B3A',
     '{"pais_codigo": "BR", "capital": false, "estado": "São Paulo", "poblacion_millones": 12.3, "altitud_msnm": 760, "zona_horaria": "UTC-3"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'BR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Río de Janeiro
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -865,7 +865,7 @@ SELECT
     'fa-city',
     '#009B3A',
     '{"pais_codigo": "BR", "capital": false, "estado": "Río de Janeiro", "poblacion_millones": 6.7, "altitud_msnm": 11, "zona_horaria": "UTC-3", "turistica": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'BR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -873,7 +873,7 @@ WHERE codigo = 'BR' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Santiago
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -889,11 +889,11 @@ SELECT
     'fa-city',
     '#D52B1E',
     '{"pais_codigo": "CL", "capital": true, "region": "Metropolitana", "poblacion_millones": 6.3, "altitud_msnm": 570, "zona_horaria": "UTC-4"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CL' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Valparaíso
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -909,7 +909,7 @@ SELECT
     'fa-city',
     '#D52B1E',
     '{"pais_codigo": "CL", "capital": false, "region": "Valparaíso", "poblacion_millones": 0.3, "altitud_msnm": 41, "zona_horaria": "UTC-4", "patrimonio_unesco": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'CL' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -917,7 +917,7 @@ WHERE codigo = 'CL' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Lima
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -933,11 +933,11 @@ SELECT
     'fa-city',
     '#D91023',
     '{"pais_codigo": "PE", "capital": true, "departamento": "Lima", "poblacion_millones": 9.7, "altitud_msnm": 154, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'PE' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Cusco
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -953,7 +953,7 @@ SELECT
     'fa-city',
     '#D91023',
     '{"pais_codigo": "PE", "capital": false, "departamento": "Cusco", "poblacion_millones": 0.4, "altitud_msnm": 3399, "zona_horaria": "UTC-5", "turistica": true, "patrimonio_unesco": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'PE' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -961,7 +961,7 @@ WHERE codigo = 'PE' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Madrid
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -977,11 +977,11 @@ SELECT
     'fa-city',
     '#C60B1E',
     '{"pais_codigo": "ES", "capital": true, "comunidad": "Madrid", "poblacion_millones": 3.3, "altitud_msnm": 667, "zona_horaria": "UTC+1"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'ES' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Barcelona
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -997,11 +997,11 @@ SELECT
     'fa-city',
     '#C60B1E',
     '{"pais_codigo": "ES", "capital": false, "comunidad": "Cataluña", "poblacion_millones": 1.6, "altitud_msnm": 12, "zona_horaria": "UTC+1", "turistica": true}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'ES' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Sevilla
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -1017,7 +1017,7 @@ SELECT
     'fa-city',
     '#C60B1E',
     '{"pais_codigo": "ES", "capital": false, "comunidad": "Andalucía", "poblacion_millones": 0.7, "altitud_msnm": 7, "zona_horaria": "UTC+1"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'ES' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -1025,7 +1025,7 @@ WHERE codigo = 'ES' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 -- ========================================
 
 -- Washington D.C.
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -1041,11 +1041,11 @@ SELECT
     'fa-city',
     '#B22234',
     '{"pais_codigo": "US", "capital": true, "estado": "Distrito de Columbia", "poblacion_millones": 0.7, "altitud_msnm": 125, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'US' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Nueva York
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -1061,11 +1061,11 @@ SELECT
     'fa-city',
     '#B22234',
     '{"pais_codigo": "US", "capital": false, "estado": "Nueva York", "poblacion_millones": 8.3, "altitud_msnm": 10, "zona_horaria": "UTC-5"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'US' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- Los Ángeles
-INSERT INTO shared_schema.catalogo_recursivo 
+INSERT INTO appmatch_schema.catalogo_recursivo 
 (catalogo_tipo, fkid_padre, codigo, nombre, nombre_en, descripcion, descripcion_en, orden, activo, seleccionable, icono, color, metadatos)
 SELECT
     'CIUDAD',
@@ -1081,7 +1081,7 @@ SELECT
     'fa-city',
     '#B22234',
     '{"pais_codigo": "US", "capital": false, "estado": "California", "poblacion_millones": 4.0, "altitud_msnm": 93, "zona_horaria": "UTC-8"}'::jsonb
-FROM shared_schema.catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo
 WHERE codigo = 'US' AND catalogo_tipo = 'PAIS' AND expiration_date IS NULL;
 
 -- ========================================
@@ -1094,7 +1094,7 @@ DECLARE
 BEGIN
     -- Contar ciudades insertadas
     SELECT COUNT(*) INTO v_count_ciudades
-    FROM shared_schema.catalogo_recursivo
+    FROM appmatch_schema.catalogo_recursivo
     WHERE catalogo_tipo = 'CIUDAD' 
       AND expiration_date IS NULL;
     
@@ -1122,11 +1122,11 @@ SELECT
     c.codigo,
     c.metadatos->>'poblacion_millones' as poblacion_millones,
     c.metadatos->>'capital' as es_capital
-FROM shared_schema.catalogo_recursivo c
-INNER JOIN shared_schema.catalogo_recursivo p ON c.fkid_padre = p.pkid_catalogo_recursivo
+FROM appmatch_schema.catalogo_recursivo c
+INNER JOIN appmatch_schema.catalogo_recursivo p ON c.fkid_padre = p.pkid_catalogo_recursivo
 WHERE c.catalogo_tipo = 'CIUDAD'
   AND c.expiration_date IS NULL
 ORDER BY p.nombre, c.orden;
 
 -- Obtener árbol completo de ciudades
--- SELECT * FROM shared_schema.catalogo_obtener_arbol('CIUDAD', TRUE, TRUE);
+-- SELECT * FROM appmatch_schema.catalogo_obtener_arbol('CIUDAD', TRUE, TRUE);
