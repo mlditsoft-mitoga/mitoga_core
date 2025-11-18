@@ -47,7 +47,9 @@ public class StartupHealthCheckLogger {
     private String datasourceUrl;
 
     // @Autowired(required = false)
-    // private com.mitoga.autenticacion.infrastructure.adapter.storage.MinIOStorageAdapter minioAdapter; // BC Autenticación eliminado
+    // private
+    // com.mitoga.autenticacion.infrastructure.adapter.storage.MinIOStorageAdapter
+    // minioAdapter; // BC Autenticación eliminado
 
     public StartupHealthCheckLogger(
             DataSource dataSource,
@@ -107,30 +109,31 @@ public class StartupHealthCheckLogger {
     }
 
     private void checkMinIO() {
-        // Método deshabilitado - MinIOStorageAdapter pertenecía al BC Autenticación eliminado
+        // Método deshabilitado - MinIOStorageAdapter pertenecía al BC Autenticación
+        // eliminado
         log.warn("⚠️  MinIO: DESHABILITADO (BC Autenticación eliminado)");
         log.info("   └─ Storage de archivos no disponible");
         /*
-        if (!minioEnabled) {
-            log.warn("⚠️  MinIO: DESHABILITADO (minio.enabled=false)");
-            log.info("   └─ Storage de archivos no disponible");
-            return;
-        }
-
-        if (minioAdapter != null) {
-            if ("not-configured".equals(minioEndpoint)) {
-                log.warn("⚠️  MinIO: NO CONFIGURADO");
-            } else {
-                log.info("✅ MinIO: HABILITADO y CONECTADO");
-                log.info("   └─ Endpoint: {}", minioEndpoint);
-                log.info("   └─ Bucket: {}", minioBucketName);
-                log.info("   └─ Estado: Verificación realizada al inicio");
-            }
-        } else {
-            log.warn("⚠️  MinIO: HABILITADO pero DESCONECTADO");
-            log.info("   └─ Storage temporal no disponible (revisar configuración)");
-        }
-        */
+         * if (!minioEnabled) {
+         * log.warn("⚠️  MinIO: DESHABILITADO (minio.enabled=false)");
+         * log.info("   └─ Storage de archivos no disponible");
+         * return;
+         * }
+         * 
+         * if (minioAdapter != null) {
+         * if ("not-configured".equals(minioEndpoint)) {
+         * log.warn("⚠️  MinIO: NO CONFIGURADO");
+         * } else {
+         * log.info("✅ MinIO: HABILITADO y CONECTADO");
+         * log.info("   └─ Endpoint: {}", minioEndpoint);
+         * log.info("   └─ Bucket: {}", minioBucketName);
+         * log.info("   └─ Estado: Verificación realizada al inicio");
+         * }
+         * } else {
+         * log.warn("⚠️  MinIO: HABILITADO pero DESCONECTADO");
+         * log.info("   └─ Storage temporal no disponible (revisar configuración)");
+         * }
+         */
     }
 
     private void checkVault() {

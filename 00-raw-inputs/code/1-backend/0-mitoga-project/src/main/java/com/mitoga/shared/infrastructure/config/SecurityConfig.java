@@ -7,6 +7,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 // import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // Ya no se usa
 import org.springframework.web.cors.CorsConfiguration;
@@ -35,10 +37,12 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-        // private final JwtAuthenticationFilter jwtAuthenticationFilter; // BC Autenticación eliminado
+        // private final JwtAuthenticationFilter jwtAuthenticationFilter; // BC
+        // Autenticación eliminado
 
         public SecurityConfig() {
-                // this.jwtAuthenticationFilter = jwtAuthenticationFilter; // BC Autenticación eliminado
+                // this.jwtAuthenticationFilter = jwtAuthenticationFilter; // BC Autenticación
+                // eliminado
         }
 
         @Bean
@@ -123,12 +127,13 @@ public class SecurityConfig {
                                                 // Admin endpoints (futura implementación)
                                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                                // Cualquier otro request requiere autenticación
-                                .anyRequest().authenticated());
+                                                // Cualquier otro request requiere autenticación
+                                                .anyRequest().authenticated());
 
-                                // JWT Authentication Filter (antes de UsernamePasswordAuthenticationFilter)
-                                // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // BC Autenticación eliminado
-                
+                // JWT Authentication Filter (antes de UsernamePasswordAuthenticationFilter)
+                // .addFilterBefore(jwtAuthenticationFilter,
+                // UsernamePasswordAuthenticationFilter.class); // BC Autenticación eliminado
+
                 return http.build();
         }
 
@@ -181,5 +186,20 @@ public class SecurityConfig {
                 source.registerCorsConfiguration("/**", configuration);
 
                 return source;
+        }
+
+        /**
+         * Bean PasswordEncoder usando BCrypt
+         * 
+         * <p>
+         * Configurado con strength 12 (balance seguridad/performance).
+         * BCrypt es recomendado por OWASP para hasheo de passwords.
+         * </p>
+         * 
+         * @return PasswordEncoder BCrypt
+         */
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder(12);
         }
 }

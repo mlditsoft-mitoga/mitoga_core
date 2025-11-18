@@ -1,0 +1,485 @@
+{
+	"info": {
+		"_postman_id": "bc-shared-services-mitoga",
+		"name": "BC - Shared Services",
+		"description": "# Bounded Context: Shared Services\n\n## Descripción\nServicios transversales compartidos por todos los Bounded Contexts:\n- Gestión de archivos (MinIO/S3)\n- Catálogos recursivos (países, ciudades, géneros, etc.)\n- Configuración global\n- Utilidades comunes\n\n## Subdominios\n1. **Gestión de Archivos**: Upload, download, eliminación de documentos\n2. **Catálogos**: Consulta de catálogos jerárquicos\n3. **Health Checks**: Monitoreo de servicios\n\n## Base URLs\n- **Desarrollo**: `http://localhost:8080`\n- **Staging**: `https://api-staging.mitoga.com`\n- **Producción**: `https://api.mitoga.com`\n\n## Arquitectura\n- **Pattern**: Shared Kernel + Infrastructure Services\n- **Storage**: MinIO (on-premise) / AWS S3 (cloud)\n- **Database**: PostgreSQL (schema: `shared_schema`)\n\n## HUTs Relacionados\n- **HUT-004**: Gestión Archivos MinIO/S3\n\n---\n\n**Autor**: Equipo Backend MI-TOGA  \n**Fecha creación**: 17 nov 2025",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Gestión de Archivos",
+			"item": [
+				{
+					"name": "1.1 Upload Archivo (Multipart)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('archivoId', jsonData.data.archivoId);",
+									"    pm.environment.set('urlDescarga', jsonData.data.urlDescarga);",
+									"    console.log('✅ Archivo subido:', jsonData.data.nombreOriginal);",
+									"}",
+									"",
+									"pm.test('Status code is 201', () => {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Metadata de archivo presente', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('archivoId');",
+									"    pm.expect(jsonData.data).to.have.property('hash');",
+									"    pm.expect(jsonData.data).to.have.property('tamano');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/path/to/document.pdf"
+								},
+								{
+									"key": "tipoArchivo",
+									"value": "DOCUMENTO_IDENTIDAD_FRENTE",
+									"type": "text"
+								},
+								{
+									"key": "entidadRelacionada",
+									"value": "PERFIL_ESTUDIANTE",
+									"type": "text"
+								},
+								{
+									"key": "entidadId",
+									"value": "{{perfilEstudianteId}}",
+									"type": "text"
+								},
+								{
+									"key": "esPublico",
+									"value": "false",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/archivos/upload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"archivos",
+								"upload"
+							]
+						},
+						"description": "**HUT-004**: Upload de Archivos a MinIO/S3\n\n### Funcionalidad\nSube un archivo al storage (MinIO o S3) y registra metadata en PostgreSQL.\n\n### Validaciones Backend\n- Archivo debe estar presente\n- Tamaño máximo: 10MB (configurable por tipo)\n- Formatos permitidos: JPG, PNG, PDF, DOCX (whitelist)\n- Detección de virus (ClamAV opcional)\n- Hash SHA256 para duplicados\n\n### Tipos de Archivo (ENUM)\n- FOTO_PERFIL (max 5MB, JPG/PNG)\n- DOCUMENTO_IDENTIDAD_FRENTE (max 5MB, JPG/PNG/PDF)\n- DOCUMENTO_IDENTIDAD_REVERSO\n- SELFIE_EN_VIVO (max 3MB, JPG/PNG)\n- DOCUMENTO_RESPONSABLE_LEGAL_FRENTE\n- DOCUMENTO_RESPONSABLE_LEGAL_REVERSO\n- CERTIFICADO_ESTUDIOS (max 10MB, PDF/DOCX)\n- COMPROBANTE_PAGO (max 5MB, PDF/JPG)\n- MATERIAL_CLASE (max 50MB, PDF/DOCX/PPT)\n\n### Storage Strategy\n- **Bucket**: Según tipo archivo\n  - Públicos: `mitoga-public`\n  - Privados: `mitoga-private`\n- **Path**: `{entidad}/{entidadId}/{tipoArchivo}/{uuid}_{filename}`\n- **Encriptación**: AES-256 (server-side)\n- **Retención**: Según política (90 días, 1 año, permanente)\n\n### Response Data\n- archivoId: UUID\n- nombreOriginal: Nombre original del archivo\n- nombreAlmacenado: UUID + extensión\n- rutaAlmacenamiento: Path completo en bucket\n- urlDescarga: Pre-signed URL (válida 1 hora)\n- hash: SHA256 del contenido\n- tamano: Bytes\n- mimeType: Detectado automáticamente"
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Download Archivo (Pre-signed URL)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Pre-signed URL generada', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.urlDescarga).to.include('X-Amz-Signature');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/archivos/:archivoId/download",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"archivos",
+								":archivoId",
+								"download"
+							],
+							"variable": [
+								{
+									"key": "archivoId",
+									"value": "{{archivoId}}"
+								}
+							]
+						},
+						"description": "### Funcionalidad\nGenera una URL temporal (pre-signed) para descargar archivo de MinIO/S3.\n\n### Validaciones Backend\n- Archivo debe existir y no estar eliminado\n- Usuario autenticado debe tener permisos\n- Si archivo privado → validar propiedad o permisos\n\n### Pre-signed URL\n- Válida por: 1 hora (3600 segundos)\n- Método: GET (solo lectura)\n- Incluye firma HMAC (X-Amz-Signature)\n- No requiere autenticación adicional\n\n### Control de Acceso\n- Archivos públicos: Cualquier usuario autenticado\n- Archivos privados: Solo propietario o admin\n- Documentos verificación: Solo usuario + admin\n- Materiales clase: Estudiante inscrito + tutor\n\n### Response\n- urlDescarga: Pre-signed URL completa\n- expiraEn: Timestamp ISO 8601\n- nombreArchivo: Para Content-Disposition en descarga"
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Eliminar Archivo (Soft Delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/archivos/:archivoId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"archivos",
+								":archivoId"
+							],
+							"variable": [
+								{
+									"key": "archivoId",
+									"value": "{{archivoId}}"
+								}
+							]
+						},
+						"description": "### Funcionalidad\nEliminación lógica (soft delete) de archivo.\n\n### Validaciones\n- Usuario debe ser propietario o admin\n- Archivo no debe estar en uso (ej: foto perfil activa)\n\n### Acciones Backend\n1. Marcar `expiration_date` = NOW()\n2. NO eliminar de MinIO/S3 (retención 90 días)\n3. Job nocturno limpia archivos expirados\n4. Registrar en audit log\n\n### Hard Delete (Admin)\n- Endpoint separado: DELETE /admin/archivos/{id}/hard\n- Elimina físicamente de storage\n- Solo admin con permiso especial"
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Listar Archivos por Entidad",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Lista de archivos devuelta', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.archivos).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/archivos?entidad=PERFIL_ESTUDIANTE&entidadId={{perfilEstudianteId}}&tipoArchivo=DOCUMENTO_IDENTIDAD_FRENTE",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"archivos"
+							],
+							"query": [
+								{
+									"key": "entidad",
+									"value": "PERFIL_ESTUDIANTE"
+								},
+								{
+									"key": "entidadId",
+									"value": "{{perfilEstudianteId}}"
+								},
+								{
+									"key": "tipoArchivo",
+									"value": "DOCUMENTO_IDENTIDAD_FRENTE"
+								}
+							]
+						},
+						"description": "### Funcionalidad\nLista todos los archivos asociados a una entidad específica.\n\n### Filtros\n- **entidad** (requerido): PERFIL_ESTUDIANTE, PERFIL_TUTOR, CLASE, etc.\n- **entidadId** (requerido): UUID de la entidad\n- **tipoArchivo** (opcional): Filtrar por tipo específico\n- **incluirEliminados** (opcional): Default false\n\n### Response\n- Lista paginada de archivos\n- Metadata de cada archivo\n- URLs de descarga (pre-signed)\n- Ordenado por fecha (más recientes primero)"
+					},
+					"response": []
+				}
+			],
+			"description": "Gestión completa de archivos con MinIO (on-premise) o AWS S3 (cloud).\n\n### Características\n- Upload multipart con validaciones\n- Pre-signed URLs (1 hora de validez)\n- Soft delete con retención configurable\n- Detección de duplicados (SHA256)\n- Control de acceso por rol y propiedad\n\n### Storage Backends\n- **Desarrollo**: MinIO (localhost:9000)\n- **Staging**: MinIO cluster\n- **Producción**: AWS S3\n\n### HUT Relacionado\n**HUT-004**: Gestión Archivos MinIO/S3"
+		},
+		{
+			"name": "2. Catálogos",
+			"item": [
+				{
+					"name": "2.1 Listar Países",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Lista de países devuelta', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.items).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/catalogos/paises",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogos",
+								"paises"
+							]
+						},
+						"description": "### Funcionalidad\nRetorna lista de países activos del catálogo.\n\n### Fuente de Datos\n- Tabla: `shared_schema.catalogo_recursivo`\n- Filtro: `tipo_catalogo` = 'PAIS'\n- Ordenado: Por nombre alfabéticamente\n\n### Estructura Response\n```json\n{\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": \"uuid\",\n        \"codigo\": \"CO\",\n        \"nombre\": \"Colombia\",\n        \"descripcion\": \"República de Colombia\",\n        \"activo\": true\n      }\n    ]\n  }\n}\n```\n\n### Cache\n- Redis: TTL 24 horas\n- Key: `catalogo:paises:all`"
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Listar Ciudades por País",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/catalogos/ciudades?paisId={{paisId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogos",
+								"ciudades"
+							],
+							"query": [
+								{
+									"key": "paisId",
+									"value": "{{paisId}}"
+								}
+							]
+						},
+						"description": "### Funcionalidad\nRetorna ciudades de un país específico.\n\n### Jerarquía Catálogo\n- País (padre) → Ciudad (hijo)\n- Relación: `pkid_padre_catalogo_recursivo`\n\n### Filtros\n- **paisId** (requerido): UUID del país\n- **activo** (opcional): Default true\n\n### Cache\n- Redis: TTL 24 horas\n- Key: `catalogo:ciudades:pais:{paisId}`"
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Listar Géneros",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/catalogos/generos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogos",
+								"generos"
+							]
+						},
+						"description": "### Funcionalidad\nRetorna lista de géneros disponibles.\n\n### Valores Típicos\n- Masculino\n- Femenino\n- No binario\n- Prefiero no decirlo\n- Otro\n\n### Cache\n- Redis: TTL 7 días\n- Key: `catalogo:generos:all`"
+					},
+					"response": []
+				},
+				{
+					"name": "2.4 Listar Tipos de Documento",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/catalogos/tipos-documento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogos",
+								"tipos-documento"
+							]
+						},
+						"description": "### Funcionalidad\nRetorna tipos de documento de identidad.\n\n### Valores Típicos (Colombia)\n- Cédula de Ciudadanía\n- Tarjeta de Identidad\n- Cédula de Extranjería\n- Pasaporte\n- NIT (para empresas)\n\n### Uso\n- Registro de usuarios\n- Verificación de identidad\n- KYC compliance"
+					},
+					"response": []
+				},
+				{
+					"name": "2.5 Buscar en Catálogo (Universal)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/catalogos/buscar?tipo=CIUDAD&query=bogo&limite=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"catalogos",
+								"buscar"
+							],
+							"query": [
+								{
+									"key": "tipo",
+									"value": "CIUDAD"
+								},
+								{
+									"key": "query",
+									"value": "bogo"
+								},
+								{
+									"key": "limite",
+									"value": "10"
+								}
+							]
+						},
+						"description": "### Funcionalidad\nBúsqueda universal en catálogos con autocompletado.\n\n### Parámetros\n- **tipo**: Tipo de catálogo (PAIS, CIUDAD, GENERO, etc.)\n- **query**: Texto a buscar (min 2 caracteres)\n- **limite**: Máximo resultados (default 20, max 100)\n\n### Búsqueda\n- Por nombre (ILIKE %query%)\n- Por código (exact match)\n- Por descripción (opcional)\n\n### Uso\n- Autocomplete en formularios\n- Búsqueda rápida de catálogos\n- Validación de existencia"
+					},
+					"response": []
+				}
+			],
+			"description": "Consulta de catálogos jerárquicos (países, ciudades, géneros, etc.).\n\n### Características\n- Estructura recursiva (padre-hijo)\n- Cache en Redis (24h)\n- Búsqueda universal\n- Soporte de jerarquías múltiples\n\n### Tipos de Catálogo\n- PAIS → CIUDAD (jerárquico)\n- GENERO (plano)\n- TIPO_DOCUMENTO (plano)\n- NIVEL_EDUCATIVO (plano)\n- AREA_CONOCIMIENTO → MATERIA (jerárquico)\n- MONEDA (plano)\n- IDIOMA (plano)\n\n### Mantenimiento\n- Admin puede agregar/editar catálogos\n- Versionamiento para auditoría\n- Soft delete (expiration_date)"
+		},
+		{
+			"name": "3. Health Checks",
+			"item": [
+				{
+					"name": "3.1 Health Check General",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "### Funcionalidad\nHealth check general del servicio (Spring Boot Actuator).\n\n### Response\n```json\n{\n  \"status\": \"UP\",\n  \"components\": {\n    \"db\": { \"status\": \"UP\" },\n    \"redis\": { \"status\": \"UP\" },\n    \"minio\": { \"status\": \"UP\" },\n    \"diskSpace\": { \"status\": \"UP\" }\n  }\n}\n```\n\n### Uso\n- Kubernetes liveness probe\n- Monitoreo de infraestructura\n- Alertas de disponibilidad"
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Info de la Aplicación",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/info",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"actuator",
+								"info"
+							]
+						},
+						"description": "### Funcionalidad\nInformación de la aplicación (versión, build, etc.).\n\n### Response\n```json\n{\n  \"app\": {\n    \"name\": \"mitoga-backend\",\n    \"version\": \"1.0.0\",\n    \"description\": \"MI-TOGA Platform API\"\n  },\n  \"build\": {\n    \"artifact\": \"mitoga-backend\",\n    \"name\": \"mitoga-backend\",\n    \"time\": \"2025-11-17T10:00:00Z\",\n    \"version\": \"1.0.0\"\n  },\n  \"java\": {\n    \"version\": \"21.0.1\"\n  },\n  \"spring\": {\n    \"version\": \"3.4.0\"\n  }\n}\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de monitoreo y health checks.\n\n### Actuator Endpoints\n- `/actuator/health`: Estado general\n- `/actuator/info`: Metadata de la app\n- `/actuator/metrics`: Métricas (Prometheus)\n\n### Seguridad\n- Endpoints públicos (sin autenticación)\n- No exponer información sensible\n- Configurar en application.yml"
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

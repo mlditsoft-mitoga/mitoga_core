@@ -1,0 +1,946 @@
+{
+	"info": {
+		"_postman_id": "bc01-auth-mitoga-2025",
+		"name": "BC01 - Autenticación",
+		"description": "# Bounded Context: Autenticación\n\n## Descripción\nGestión completa del ciclo de vida de autenticación de usuarios en la plataforma MI-TOGA:\n- Registro multi-step (estudiantes y tutores)\n- Verificación de email con OTP\n- Login con JWT + Refresh Token\n- Gestión de sesiones activas\n- Recuperación de contraseña\n\n## Base URLs\n- **Desarrollo**: `http://localhost:8080`\n- **Staging**: `https://api-staging.mitoga.com`\n- **Producción**: `https://api.mitoga.com`\n\n## Arquitectura\n- **Pattern**: Hexagonal (Ports & Adapters)\n- **DDD**: Aggregate Root `Usuario`\n- **Security**: JWT (Access Token 15min + Refresh Token 7 días)\n- **Database**: PostgreSQL 17.6 (schema: `appmatch_schema.usuarios`)\n\n## Versionamiento API\n- **Versión actual**: v1\n- **Estrategia**: URL versioning (`/api/v1/...`)\n\n## ADRs Relacionados\n- [ADR-003] Estrategia JWT + OAuth2\n- [ADR-008] Validación Bean Validation\n- [ADR-009] Redis para cache distribuido\n- [ADR-017] Rate limiting con Bucket4j\n\n---\n\n**Autor**: Equipo Backend MI-TOGA  \n**Fecha creación**: 17 nov 2025  \n**Sprint**: Sprint 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "mitoga-backend-team"
+	},
+	"item": [
+		{
+			"name": "1. Registro",
+			"item": [
+				{
+					"name": "1.1 STEP 1 - Iniciar Registro (Credenciales)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Extraer y guardar usuarioId y procesoRegistroId",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('usuarioId', jsonData.data.usuarioId);",
+									"    pm.environment.set('procesoRegistroId', jsonData.data.procesoRegistroId);",
+									"    pm.environment.set('email', jsonData.data.email);",
+									"    ",
+									"    console.log('✅ Usuario creado:', jsonData.data.usuarioId);",
+									"}",
+									"",
+									"// Validar estructura response",
+									"pm.test('Status code is 201', () => {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response tiene estructura correcta', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'success');",
+									"    pm.expect(jsonData.data).to.have.property('usuarioId');",
+									"    pm.expect(jsonData.data).to.have.property('email');",
+									"    pm.expect(jsonData.data).to.have.property('estadoCuenta', 'PENDIENTE_VERIFICACION');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Client-Version",
+								"value": "1.0.0",
+								"description": "Versión del cliente"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{$randomEmail}}\",\n  \"password\": \"SecurePass123!\",\n  \"confirmPassword\": \"SecurePass123!\",\n  \"metadata\": {\n    \"ipRegistro\": \"192.168.1.100\",\n    \"userAgent\": \"PostmanRuntime/7.32.3\",\n    \"dispositivo\": \"web\",\n    \"navegador\": \"Postman\",\n    \"sistemaOperativo\": \"Windows 11\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/registro/estudiante/step1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"registro",
+								"estudiante",
+								"step1"
+							]
+						},
+						"description": "**HUT-001**: Registro de Estudiantes - STEP 1\n\n### Funcionalidad\nInicia el proceso de registro multi-step creando el usuario con credenciales básicas.\n\n### Validaciones Backend\n- Email único (no registrado previamente)\n- Email válido (RFC 5322)\n- Password ≥ 8 caracteres\n- Password debe contener: mayúsculas, minúsculas, números\n- ConfirmPassword debe coincidir\n\n### Estado Inicial Usuario\n- `estado_cuenta`: PENDIENTE_VERIFICACION\n- `email_verificado`: false\n- `intentos_fallidos_login`: 0\n\n### Flujo Siguiente\n1. Se envía OTP al email (válido 10 min)\n2. Usuario debe verificar email (HUT-003)\n3. Continuar con STEP 2 (información personal)"
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 STEP 2 - Completar Información Personal",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('informacionBasicaId', jsonData.data.informacionBasicaId);",
+									"    console.log('✅ Información personal guardada');",
+									"}",
+									"",
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Validación edad realizada', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('esMayorDeEdad');",
+									"    pm.expect(jsonData.data).to.have.property('requiereResponsableLegal');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"procesoRegistroId\": \"{{procesoRegistroId}}\",\n  \"informacionPersonal\": {\n    \"primerNombre\": \"Juan\",\n    \"segundoNombre\": \"Carlos\",\n    \"primerApellido\": \"Pérez\",\n    \"segundoApellido\": \"García\",\n    \"fechaNacimiento\": \"2005-03-15\",\n    \"generoId\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"tipoDocumentoId\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"numeroDocumento\": \"1234567890\",\n    \"telefono\": \"+57 310 1234567\",\n    \"paisId\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"ciudadId\": \"550e8400-e29b-41d4-a716-446655440003\",\n    \"direccion\": \"Calle 123 #45-67, Apto 301\",\n    \"codigoPostal\": \"110111\"\n  },\n  \"responsableLegal\": {\n    \"requerido\": false,\n    \"primerNombre\": null,\n    \"primerApellido\": null,\n    \"email\": null,\n    \"telefono\": null,\n    \"tipoDocumentoId\": null,\n    \"numeroDocumento\": null\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/registro/estudiante/step2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"registro",
+								"estudiante",
+								"step2"
+							]
+						},
+						"description": "**HUT-001**: Registro de Estudiantes - STEP 2\n\n### Funcionalidad\nCompleta la información personal del usuario (datos básicos + ubicación).\n\n### Validaciones Backend\n- Usuario debe estar en estado PENDIENTE_VERIFICACION\n- Edad ≥ 13 años (política COPPA)\n- Si edad < 18 años → requiere responsable legal\n- Nombres y apellidos: solo letras y espacios\n- Número documento único por tipo\n- País y ciudad deben existir en catálogo\n- Teléfono formato internacional (+57 310 1234567)\n\n### Lógica Responsable Legal\n- Si `fechaNacimiento` indica menor de edad (< 18 años)\n- Campo `responsableLegal.requerido` = true\n- Todos los campos de responsableLegal son obligatorios\n\n### Flujo Siguiente\nContinuar con STEP 3 (carga de documentos)"
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 STEP 3 - Cargar Documentos Verificación",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    console.log('✅ Documentos cargados:', jsonData.data.archivosSubidos.length);",
+									"}",
+									"",
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Archivos subidos correctamente', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.archivosSubidos.length).to.be.at.least(4);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "usuarioId",
+									"value": "{{usuarioId}}",
+									"type": "text"
+								},
+								{
+									"key": "procesoRegistroId",
+									"value": "{{procesoRegistroId}}",
+									"type": "text"
+								},
+								{
+									"key": "fotoPerfil",
+									"type": "file",
+									"src": "/path/to/foto-perfil.jpg"
+								},
+								{
+									"key": "documentoFrente",
+									"type": "file",
+									"src": "/path/to/documento-frente.jpg"
+								},
+								{
+									"key": "documentoReverso",
+									"type": "file",
+									"src": "/path/to/documento-reverso.jpg"
+								},
+								{
+									"key": "fotoEnVivo",
+									"type": "file",
+									"src": "/path/to/selfie-en-vivo.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/registro/estudiante/step3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"registro",
+								"estudiante",
+								"step3"
+							]
+						},
+						"description": "**HUT-001 + HUT-004**: Registro de Estudiantes - STEP 3\n\n### Funcionalidad\nCarga de documentos de verificación de identidad (4 fotos obligatorias).\n\n### Archivos Requeridos\n1. **fotoPerfil**: Foto de perfil profesional\n2. **documentoFrente**: Documento de identidad (frontal)\n3. **documentoReverso**: Documento de identidad (reverso)\n4. **fotoEnVivo**: Selfie en vivo (validación biométrica)\n\n### Validaciones Backend\n- Formatos permitidos: JPG, JPEG, PNG\n- Tamaño máximo: 5MB por archivo\n- Resolución mínima: 800x600 px\n- Detección de duplicados (hash SHA256)\n- Almacenamiento: MinIO/S3\n\n### Storage Strategy\n- Bucket: `mitoga-verificacion-documentos`\n- Path: `{usuarioId}/{tipoArchivo}/{timestamp}_{filename}`\n- Encriptación: AES-256\n- Retención: 90 días post-verificación\n\n### Flujo Siguiente\nContinuar con STEP 4 (confirmación y aceptación términos)"
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 STEP 4 - Confirmar Registro",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('perfilEstudianteId', jsonData.data.perfilEstudianteId);",
+									"    console.log('✅ Registro completado exitosamente');",
+									"}",
+									"",
+									"pm.test('Status code is 201', () => {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Perfil estudiante creado', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('perfilEstudianteId');",
+									"    pm.expect(jsonData.data.estadoPerfil).to.equal('PENDIENTE_APROBACION');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"procesoRegistroId\": \"{{procesoRegistroId}}\",\n  \"aceptaciones\": {\n    \"aceptaTerminosYCondiciones\": true,\n    \"aceptaPoliticaPrivacidad\": true,\n    \"aceptaHabeasData\": true,\n    \"aceptaUsoDatosPersonales\": true,\n    \"ipAceptacion\": \"192.168.1.100\",\n    \"fechaAceptacion\": \"{{$isoTimestamp}}\"\n  },\n  \"preferenciasComunicacion\": {\n    \"recibirEmailsPromocionales\": true,\n    \"recibirNotificacionesPush\": true,\n    \"recibirSMS\": false\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/registro/estudiante/step4",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"registro",
+								"estudiante",
+								"step4"
+							]
+						},
+						"description": "**HUT-001**: Registro de Estudiantes - STEP 4 (FINAL)\n\n### Funcionalidad\nFinaliza el proceso de registro aceptando términos y condiciones.\n\n### Validaciones Backend\n- Todos los campos de aceptación deben ser `true`\n- Usuario debe haber completado STEP 1, 2 y 3\n- Proceso de registro debe estar en estado COMPLETO\n\n### Acciones Backend\n1. Crear perfil de estudiante (tabla `perfil_informacion_basica`)\n2. Cambiar estado a `PENDIENTE_APROBACION`\n3. Crear registro de aceptaciones legales (auditoría)\n4. Enviar email de bienvenida\n5. Notificar a equipo admin para aprobación manual\n\n### Estados Finales\n- Usuario: `ACTIVO` (puede hacer login)\n- Perfil Estudiante: `PENDIENTE_APROBACION` (funcionalidad limitada)\n\n### Funcionalidad Disponible Post-Registro\n- ✅ Login y navegación básica\n- ✅ Editar perfil\n- ✅ Ver catálogo de tutores (solo lectura)\n- ❌ Reservar tutorías (requiere aprobación)\n- ❌ Realizar pagos (requiere aprobación)"
+					},
+					"response": []
+				}
+			],
+			"description": "Flujo completo de registro multi-step para estudiantes.\n\n### Secuencia de Pasos\n1. **STEP 1**: Credenciales (email + password)\n2. **STEP 2**: Información personal + responsable legal (si aplica)\n3. **STEP 3**: Carga de 4 documentos (foto perfil, documento frente/reverso, selfie)\n4. **STEP 4**: Aceptación términos y confirmación\n\n### Política de Rollback\nSi el usuario abandona el proceso:\n- STEP 1 solo → Usuario soft-deleted tras 7 días\n- STEP 2-3 completos → Proceso guardado 30 días, puede retomar\n\n### HUTs Relacionados\n- **HUT-001**: Registro Estudiantes\n- **HUT-002**: Registro Tutores (similar flow)\n- **HUT-004**: Gestión archivos MinIO/S3"
+		},
+		{
+			"name": "2. Verificación Email (OTP)",
+			"item": [
+				{
+					"name": "2.1 Verificar Código OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('accessToken', jsonData.data.tokens.accessToken);",
+									"    pm.environment.set('refreshToken', jsonData.data.tokens.refreshToken);",
+									"    console.log('✅ Email verificado, tokens guardados');",
+									"}",
+									"",
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Tokens JWT generados', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.tokens).to.have.property('accessToken');",
+									"    pm.expect(jsonData.data.tokens).to.have.property('refreshToken');",
+									"    pm.expect(jsonData.data.tokens.expiresIn).to.equal(900);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"email\": \"{{email}}\",\n  \"codigoOTP\": \"123456\",\n  \"metadata\": {\n    \"ipAddress\": \"192.168.1.100\",\n    \"userAgent\": \"PostmanRuntime/7.32.3\",\n    \"dispositivo\": \"web\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/verificar-email",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"verificar-email"
+							]
+						},
+						"description": "**HUT-003**: Verificación de Email con OTP\n\n### Funcionalidad\nVerifica el email del usuario mediante código OTP de 6 dígitos.\n\n### Flujo OTP\n1. Usuario recibe email con código al completar STEP 1\n2. Código válido por 10 minutos\n3. Máximo 3 intentos fallidos\n4. Tras 3 fallos → bloqueo temporal 15 minutos\n\n### Validaciones Backend\n- Código OTP debe coincidir con el almacenado en Redis\n- TTL no expirado (< 10 min desde envío)\n- Usuario no bloqueado por intentos fallidos\n- Estado usuario = PENDIENTE_VERIFICACION\n\n### Acciones Backend (éxito)\n1. Cambiar `email_verificado` = true\n2. Cambiar `estado_cuenta` = ACTIVO\n3. Resetear `intentos_fallidos_login` = 0\n4. Generar par de tokens JWT (access + refresh)\n5. Eliminar OTP de Redis\n6. Registrar evento `EmailVerificadoEvent`\n\n### Tokens Generados\n- **Access Token**: Válido 15 min (900s)\n- **Refresh Token**: Válido 7 días (604800s)\n- **Algoritmo**: HMAC-SHA256\n- **Claims**: usuarioId, email, rol, permisos"
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Reenviar Código OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Cooldown respetado', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('proximoReenvioEn');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"email\": \"{{email}}\",\n  \"metadata\": {\n    \"ipAddress\": \"192.168.1.100\",\n    \"userAgent\": \"PostmanRuntime/7.32.3\",\n    \"dispositivo\": \"web\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/reenviar-otp",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"reenviar-otp"
+							]
+						},
+						"description": "**HUT-003**: Reenviar Código OTP\n\n### Funcionalidad\nReenvía un nuevo código OTP si el anterior expiró o se perdió.\n\n### Validaciones Backend\n- Cooldown de 60 segundos entre reenvíos\n- Máximo 5 reenvíos por proceso de registro\n- Usuario debe estar en PENDIENTE_VERIFICACION\n- No debe estar bloqueado\n\n### Lógica Rate Limiting\n- Key Redis: `otp:reenvio:{usuarioId}`\n- TTL: 60 segundos\n- Si key existe → retornar 429 Too Many Requests\n\n### Acciones Backend\n1. Generar nuevo código OTP (6 dígitos)\n2. Invalidar código anterior en Redis\n3. Guardar nuevo código con TTL 10 min\n4. Enviar email con plantilla Thymeleaf\n5. Incrementar contador reenvíos\n6. Establecer cooldown 60s"
+					},
+					"response": []
+				}
+			],
+			"description": "Verificación de email mediante One-Time Password (OTP).\n\n### Características\n- Código de 6 dígitos numéricos\n- Válido 10 minutos (TTL en Redis)\n- Máximo 3 intentos fallidos\n- Cooldown 60s entre reenvíos\n- Bloqueo temporal tras fallos repetidos\n\n### Seguridad\n- OTP almacenado en Redis (no en DB)\n- Rate limiting por IP y usuario\n- Logging de todos los intentos\n- Email enmascarado en responses (est***nte@email.com)\n\n### HUT Relacionado\n**HUT-003**: Verificación Email con OTP"
+		},
+		{
+			"name": "3. Login & Tokens",
+			"item": [
+				{
+					"name": "3.1 Login (Access + Refresh Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('accessToken', jsonData.data.tokens.accessToken);",
+									"    pm.environment.set('refreshToken', jsonData.data.tokens.refreshToken);",
+									"    pm.environment.set('sesionId', jsonData.data.sesion.sesionId);",
+									"    ",
+									"    // Auto-configurar Authorization header para próximas requests",
+									"    pm.request.headers.add({",
+									"        key: 'Authorization',",
+									"        value: `Bearer ${jsonData.data.tokens.accessToken}`",
+									"    });",
+									"    ",
+									"    console.log('✅ Login exitoso, tokens guardados');",
+									"}",
+									"",
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Estructura completa de tokens', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.tokens).to.have.all.keys(",
+									"        'accessToken', 'refreshToken', 'tokenType', 'expiresIn', 'refreshExpiresIn'",
+									"    );",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"SecurePass123!\",\n  \"dispositivo\": {\n    \"tipo\": \"WEB\",\n    \"navegador\": \"Chrome 120\",\n    \"sistemaOperativo\": \"Windows 11\",\n    \"ip\": \"192.168.1.100\",\n    \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\"\n  },\n  \"recordarme\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "**HUT-006**: Login con JWT\n\n### Funcionalidad\nAutenticación de usuario con email y contraseña, generando par de tokens JWT.\n\n### Validaciones Backend\n- Email debe existir y estar verificado\n- Password debe coincidir (bcrypt)\n- Usuario debe estar en estado ACTIVO\n- No debe estar bloqueado por intentos fallidos\n\n### Lógica Intentos Fallidos\n- Tras fallo: incrementar `intentos_fallidos_login`\n- Si intentos ≥ 5 → cambiar estado a BLOQUEADO\n- Bloqueo temporal: 15 minutos\n- Tras login exitoso: resetear intentos a 0\n\n### Gestión de Sesiones\n- Se crea registro en tabla `sesiones_activas`\n- Máximo 5 sesiones concurrentes por usuario\n- Si límite alcanzado → cerrar sesión más antigua\n- Tracking: IP, dispositivo, ubicación (GeoIP)\n\n### Tokens JWT\n- **Access Token**: 15 min (claims: usuarioId, email, rol)\n- **Refresh Token**: 7 días (claims: usuarioId, sesionId, jti)\n- **Token Rotation**: Cada refresh genera nuevo par\n- **Storage**: Refresh tokens en Redis (blacklist al logout)\n\n### Response Data\n- Usuario: id, email, nombre, rol, foto perfil\n- Tokens: access, refresh, expiración\n- Sesión: id, dispositivo, ubicación, fecha\n- Navegación: URLs sugeridas (dashboard, perfil)"
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Refresh Token (Renovar Access Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('accessToken', jsonData.data.accessToken);",
+									"    pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+									"    console.log('✅ Tokens renovados (rotation)');",
+									"}",
+									"",
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Nuevo par de tokens generado', () => {",
+									"    const jsonData = pm.response.json();",
+									"    const oldAccessToken = pm.environment.get('accessToken');",
+									"    const oldRefreshToken = pm.environment.get('refreshToken');",
+									"    ",
+									"    pm.expect(jsonData.data.accessToken).to.not.equal(oldAccessToken);",
+									"    pm.expect(jsonData.data.refreshToken).to.not.equal(oldRefreshToken);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/refresh",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "**HUT-006**: Refresh Token Rotation\n\n### Funcionalidad\nRenueva el Access Token usando el Refresh Token, implementando token rotation.\n\n### Validaciones Backend\n- Refresh token debe ser válido (firma HMAC-SHA256)\n- No debe estar en blacklist de Redis\n- No debe estar expirado (< 7 días)\n- Sesión asociada debe estar activa\n\n### Token Rotation Strategy\n1. Validar refresh token actual\n2. Generar NUEVO access token (15 min)\n3. Generar NUEVO refresh token (7 días)\n4. Invalidar refresh token anterior (blacklist Redis)\n5. Actualizar `ultima_actividad` en sesión\n\n### Seguridad\n- Previene replay attacks (token usado 1 sola vez)\n- Rotación automática en cada refresh\n- Sliding session (extiende 7 días desde último refresh)\n- Detección de tokens robados (múltiples refreshes simultáneos)\n\n### Manejo de Errores\n- **401**: Refresh token inválido → Forzar re-login\n- **403**: Token en blacklist → Sesión cerrada previamente\n- **410**: Token expirado → Re-autenticación requerida"
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Logout (Cerrar Sesión)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.environment.unset('accessToken');",
+									"    pm.environment.unset('refreshToken');",
+									"    pm.environment.unset('sesionId');",
+									"    console.log('✅ Sesión cerrada, tokens eliminados');",
+									"}",
+									"",
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"cerrarTodasLasSesiones\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "**HUT-006**: Logout Seguro\n\n### Funcionalidad\nCierra la sesión actual invalidando los tokens JWT.\n\n### Acciones Backend\n1. Agregar refresh token a blacklist de Redis\n2. Eliminar sesión de `sesiones_activas`\n3. Registrar logout en audit log\n4. Actualizar `fecha_ultimo_acceso` del usuario\n\n### Opciones de Cierre\n- **cerrarTodasLasSesiones = false**: Solo cierra sesión actual\n- **cerrarTodasLasSesiones = true**: Cierra todas las sesiones del usuario (útil si detecta acceso no autorizado)\n\n### Blacklist en Redis\n- Key: `blacklist:rt:{jti}`\n- TTL: Mismo que el refresh token (7 días)\n- Consulta rápida en middleware JWT\n\n### Eventos Disparados\n- `UsuarioLogoutEvent` (domain event)\n- Email de notificación (si cierre masivo)"
+					},
+					"response": []
+				},
+				{
+					"name": "3.4 Listar Sesiones Activas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Lista de sesiones devuelta', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.sesiones).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/sesiones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"sesiones"
+							]
+						},
+						"description": "**HUT-006**: Gestión de Sesiones\n\n### Funcionalidad\nLista todas las sesiones activas del usuario autenticado.\n\n### Información por Sesión\n- **sesionId**: UUID único\n- **dispositivo**: Tipo, navegador, SO\n- **ubicacion**: Ciudad, país (GeoIP)\n- **ipAddress**: IP origen (enmascarada: 192.168.***.***)\n- **fechaCreacion**: Timestamp del login\n- **ultimaActividad**: Timestamp último request\n- **esActual**: Boolean (sesión del token actual)\n\n### Casos de Uso\n- Ver dónde está logueado el usuario\n- Detectar sesiones sospechosas\n- Cerrar sesiones remotas desde UI\n\n### Límites\n- Máximo 5 sesiones concurrentes\n- Sesiones inactivas > 30 días se cierran automáticamente"
+					},
+					"response": []
+				},
+				{
+					"name": "3.5 Cerrar Sesión Específica",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/sesiones/:sesionId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"sesiones",
+								":sesionId"
+							],
+							"variable": [
+								{
+									"key": "sesionId",
+									"value": "{{sesionId}}"
+								}
+							]
+						},
+						"description": "**HUT-006**: Cerrar Sesión Remota\n\n### Funcionalidad\nCierra una sesión específica (útil para revocar acceso en dispositivo perdido).\n\n### Validaciones\n- Sesión debe pertenecer al usuario autenticado\n- No se puede cerrar la sesión actual (usar logout)\n\n### Acciones Backend\n1. Blacklist refresh token de la sesión\n2. Eliminar registro de `sesiones_activas`\n3. Enviar notificación al dispositivo (si push habilitado)"
+					},
+					"response": []
+				}
+			],
+			"description": "Autenticación JWT con estrategia de token rotation.\n\n### Características\n- **Access Token**: 15 minutos (claims ligeros)\n- **Refresh Token**: 7 días (sliding session)\n- **Token Rotation**: Nuevo par en cada refresh\n- **Blacklist**: Redis para tokens revocados\n- **Sesiones**: Máximo 5 concurrentes\n\n### Seguridad\n- bcrypt para passwords (cost factor 12)\n- HMAC-SHA256 para firma JWT\n- Rate limiting (5 intentos/5min)\n- Device fingerprinting\n- GeoIP tracking\n\n### HUT Relacionado\n**HUT-006**: Login + Refresh Token"
+		},
+		{
+			"name": "4. Recuperación Contraseña",
+			"item": [
+				{
+					"name": "4.1 Solicitar Recuperación (Enviar Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Email enviado', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('emailEnviadoA');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/recuperar-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"recuperar-password"
+							]
+						},
+						"description": "### Funcionalidad\nInicia el proceso de recuperación de contraseña enviando token por email.\n\n### Validaciones Backend\n- Email debe existir en la base de datos\n- Usuario debe estar ACTIVO (no bloqueado/eliminado)\n- Rate limiting: 1 solicitud cada 5 minutos por email\n\n### Lógica Token Recuperación\n- Generar token UUID aleatorio (128 bits)\n- TTL: 24 horas\n- Guardar en campo `token_recuperacion_password`\n- Guardar timestamp en `fecha_token_recuperacion`\n\n### Email Enviado\n- Plantilla Thymeleaf responsive\n- Link: `https://mitoga.com/reset-password?token={token}`\n- Mensaje: \"Si no solicitaste esto, ignora este email\"\n- Válido por: 24 horas\n\n### Seguridad\n- No revelar si email existe (siempre retornar 200)\n- Logging de todas las solicitudes\n- Bloqueo tras 3 solicitudes/hora por IP"
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Validar Token Recuperación",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Token válido', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.esValido).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/validar-token-recuperacion?token=abc123xyz789",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"validar-token-recuperacion"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "abc123xyz789"
+								}
+							]
+						},
+						"description": "### Funcionalidad\nValida si el token de recuperación es válido antes de mostrar formulario.\n\n### Validaciones Backend\n- Token debe existir en DB\n- No debe estar expirado (< 24 horas)\n- Usuario asociado debe estar ACTIVO\n- Token no debe haber sido usado (se invalida tras cambio exitoso)\n\n### Response\n- `esValido`: boolean\n- `email`: Enmascarado (mar***ia@email.com)\n- `expiraEn`: Timestamp ISO 8601\n- `minutosRestantes`: Número\n\n### Casos de Error\n- Token no existe → 404\n- Token expirado → 410 Gone\n- Token ya usado → 409 Conflict"
+					},
+					"response": []
+				},
+				{
+					"name": "4.3 Restablecer Contraseña (Nueva Password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Contraseña actualizada', () => {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('actualizada');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"abc123xyz789\",\n  \"nuevaPassword\": \"NewSecurePass456!\",\n  \"confirmPassword\": \"NewSecurePass456!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/restablecer-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"restablecer-password"
+							]
+						},
+						"description": "### Funcionalidad\nEstablece la nueva contraseña usando el token de recuperación.\n\n### Validaciones Backend\n- Token válido y no expirado\n- Nueva password cumple política (8+ chars, complejidad)\n- Nueva password ≠ última 3 passwords (prevenir reuso)\n- confirmPassword debe coincidir\n\n### Acciones Backend\n1. Validar token (mismo flujo que validar-token)\n2. Hashear nueva password con bcrypt (cost 12)\n3. Actualizar `password_hash` en DB\n4. Invalidar token: `token_recuperacion_password` = NULL\n5. Resetear `intentos_fallidos_login` = 0\n6. Si estaba BLOQUEADO → cambiar a ACTIVO\n7. Cerrar todas las sesiones activas (seguridad)\n8. Blacklist todos los refresh tokens en Redis\n9. Enviar email de confirmación\n10. Registrar evento `PasswordCambiadoEvent`\n\n### Política de Seguridad\n- No permitir contraseñas comunes (rockyou.txt)\n- Verificar contra Have I Been Pwned API\n- Forzar re-login en todos los dispositivos\n- Notificar cambio a email secundario (si existe)"
+					},
+					"response": []
+				}
+			],
+			"description": "Flujo de recuperación de contraseña mediante token por email.\n\n### Secuencia\n1. Usuario solicita recuperación (ingresa email)\n2. Sistema envía email con link + token (válido 24h)\n3. Usuario hace click en link\n4. Frontend valida token (GET validar-token)\n5. Usuario ingresa nueva contraseña\n6. Sistema actualiza password e invalida token\n7. Sesiones existentes son cerradas (forzar re-login)\n\n### Seguridad\n- Token único de un solo uso\n- TTL 24 horas\n- Rate limiting por IP y email\n- Forzar cierre de sesiones\n- Notificación por email\n\n### Política Password\n- Mínimo 8 caracteres\n- Al menos 1 mayúscula, 1 minúscula, 1 número\n- No puede ser igual a últimas 3 passwords\n- Validación contra pwned passwords"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Pre-request Script Global",
+					"console.log('🔄 Request a:', pm.request.url.toString());",
+					"",
+					"// Inyectar timestamp si es necesario",
+					"if (!pm.request.body || !pm.request.body.raw) {",
+					"    return;",
+					"}",
+					"",
+					"const body = JSON.parse(pm.request.body.raw);",
+					"if (body.metadata && !body.metadata.timestamp) {",
+					"    body.metadata.timestamp = new Date().toISOString();",
+					"    pm.request.body.raw = JSON.stringify(body, null, 2);",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Test Script Global",
+					"",
+					"// Validar siempre que haya response",
+					"pm.test('Response time < 2000ms', () => {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});",
+					"",
+					"// Si es error, mostrar detalle",
+					"if (pm.response.code >= 400) {",
+					"    const jsonData = pm.response.json();",
+					"    console.error('❌ Error:', jsonData.message);",
+					"    if (jsonData.data) {",
+					"        console.error('Detalle:', jsonData.data);",
+					"    }",
+					"}",
+					"",
+					"// Validar estructura standard response (si 2xx)",
+					"if (pm.response.code >= 200 && pm.response.code < 300) {",
+					"    pm.test('Response tiene estructura estándar', () => {",
+					"        const jsonData = pm.response.json();",
+					"        pm.expect(jsonData).to.have.property('status');",
+					"        pm.expect(jsonData).to.have.property('timestamp');",
+					"    });",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
